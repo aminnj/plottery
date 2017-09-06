@@ -8,7 +8,7 @@ import plottery as ply
 2 to show three TGraph ROC curves 
 3 to show a TH2D with smart bin labels...fancy
 """
-which_test = 0
+which_test = 1
 
 if which_test == 0:
 
@@ -29,20 +29,24 @@ if which_test == 1:
             options = {
                 "do_stack": False,
                 "output_name": "test1.pdf",
+                "legend_percentageinbox": True,
+                "output_ic": True,
                 }
             )
-    os.system("ic test1.pdf")
 
 
 elif which_test == 2:
 
     ply.plot_graph(
             [
+                # pairs of x coord and y coord lists --> normal line
                 ([0.1,0.2,0.3,0.4,0.5,0.6,0.7,1.0], [0.1,0.5,0.9,1.0,1.0,1.0,1.0,1.0]),
-                ([0.1,0.2,0.3,0.4,0.5,0.6,0.7,1.0], [0.1,0.3,0.5,0.7,0.8,0.9,0.95,1.0]),
-                ([0.1,0.2,0.3,0.4,0.5,0.6,0.7,1.0], [0.1,0.2,0.3,0.45,0.6,0.7,0.8,1.0]),
+                # pairs of x coord and y coord lists --> normal line
+                ([0.2,0.3,0.4,0.5,0.6,0.7,1.0], [0.3,0.5,0.7,0.8,0.9,0.95,1.0]),
+                # quadruplet of x, y, ydown,yup --> error band
+                ([0.1,0.2,0.3,0.4,0.5,0.6,0.7,1.0], [0.1,0.2,0.3,0.45,0.6,0.7,0.8,1.0],[0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1],[0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1]),
                 ],
-            colors = [r.kRed-2, r.kAzure+2, r.kGreen-2],
+            colors = [r.kRed-2, r.kGreen-2, r.kAzure+2],
             legend_labels = ["red", "white", "blue"],
             options = {
                 "legend_alignment": "bottom right",
@@ -55,9 +59,9 @@ elif which_test == 2:
                 "yaxis_range": [0.1,1.0],
                 "title": "Crappy ROC curve",
                 "output_name": "test2.pdf",
+                "output_ic": True,
                 }
             )
-    os.system("ic test2.pdf")
 
     
 elif which_test == 3:
@@ -74,8 +78,8 @@ elif which_test == 3:
                 "output_name": "test.pdf",
                 "bin_text_smart": True,
                 "output_name": "test3.pdf",
+                "us_flag": True,
                 }
             )
-    os.system("ic test3.pdf")
 
 

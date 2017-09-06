@@ -21,7 +21,7 @@ class Options(object):
             "legend_coordinates": { "type": "List", "desc": "4 elements specifying TLegend constructor coordinates", "default": [0.65,0.70,0.93,0.87], "kinds": ["1d","1dratio","graph"], },
             "legend_alignment": { "type": "Boolean", "desc": "easy alignment of TLegend. String containing two words from: bottom, top, left, right", "default": "", "kinds": ["1d","1dratio","graph"], },
             "legend_opacity": { "type": "Float", "desc": "from 0 to 1 representing the opacity of the TLegend white background", "default": 0, "kinds": ["1d","1dratio","graph"], },
-  # TODO    "legend_percentageinbox": { "type": "Boolean", "desc": "show relative process contributions as %age in the legend thumbnails", "default": False, "kinds": ["1d","1dratio"], },
+             "legend_percentageinbox": { "type": "Boolean", "desc": "show relative process contributions as %age in the legend thumbnails", "default": False, "kinds": ["1d","1dratio"], }, # FIXME not fully implemented
 
             # Axes
             "xaxis_log": { "type": "Boolean", "desc": "log scale x-axis", "default": False, "kinds": ["1d","1dratio","graph","2d"], },
@@ -60,6 +60,7 @@ class Options(object):
 
             # Output
             "output_name": { "type": "String", "desc": "output file name/path", "default": "plot.pdf", "kinds": ["1d","1dratio","graph","2d"], },
+            "output_ic": { "type": "Boolean", "desc": "run `ic` (imgcat) on output", "default": False, "kinds": ["1d","1dratio","graph","2d"], },
 
         }
 
@@ -117,8 +118,7 @@ class Options(object):
         return key in self.options
 
 
-def plot_graph(valpairs,colors=[],legend_labels=[],xlabel="",ylabel="",title="Graph",legend_position="top right",\
-        logx=False,logy=False,draw_styles=[],xlims=[],ylims=[],save_as="test.pdf",options={}):
+def plot_graph(valpairs,colors=[],legend_labels=[],draw_styles=[],options={}):
 
     opts = Options(options, kind="graph")
 
@@ -128,29 +128,56 @@ def plot_graph(valpairs,colors=[],legend_labels=[],xlabel="",ylabel="",title="Gr
     legend = get_legend(opts)
 
     mg = r.TMultiGraph()
-    for ipair,(xs,ys) in enumerate(valpairs):
-        graph = r.TGraph(len(xs), np.array(xs,dtype=float), np.array(ys,dtype=float))
+    drawopt = ""
+    for parts in enumerate(valpairs):
+        ipair = parts[0]
+        rest = parts[1]
+        typ = "xy"
+        drawopt = "AL"
+        if len(rest) == 2:
+            xs, ys = rest
+            graph = r.TGraphAsymmErrors(len(xs), np.array(xs,dtype=float), np.array(ys,dtype=float))
+            typ = "xy"
+            legopt = "LP"
+        elif len(rest) == 4:
+            xs, ys, ylows, yhighs = rest
+            graph = r.TGraphAsymmErrors(len(xs), np.array(xs,dtype=float), np.array(ys,dtype=float), np.zeros(len(xs),dtype=float), np.zeros(len(xs),dtype=float), np.array(ylows,dtype=float),np.array(yhighs,dtype=float))
+            typ = "xyey"
+            legopt, drawopt = "FLP","ALP3"
+        elif len(rest) == 6:
+            xs, ys, xlows, xhighs, ylows, yhighs = rest
+            graph = r.TGraphAsymmErrors(len(xs), np.array(xs,dtype=float), np.array(ys,dtype=float), np.array(xlows,dtype=float), np.array(xhighs,dtype=float), np.array(ylows,dtype=float),np.array(yhighs,dtype=float))
+            typ = "xyexey"
+            legopt, drawopt = "FELP","ALP3"
+        else:
+            raise ValueError("don't recognize this format")
+
         if ipair < len(colors): 
             graph.SetLineColor(colors[ipair])
             graph.SetLineWidth(4)
             graph.SetMarkerColor(colors[ipair])
-            graph.SetMarkerSize(1.0)
+            graph.SetMarkerSize(0.30*graph.GetLineWidth())
         if ipair < len(draw_styles):
             graph.SetLineStyle(draw_styles[ipair])
         if ipair < len(legend_labels):
-            legend.AddEntry(graph, legend_labels[ipair], "L")
+            legend.AddEntry(graph, legend_labels[ipair],legopt)
+
+        if typ in ["xyey","xyexey"]:
+            graph.SetFillColorAlpha(graph.GetLineColor(),0.3)
+
         mg.Add(graph)
 
-    mg.SetTitle(title)
+    mg.SetTitle(opts["title"])
 
-    mg.Draw("AL")
+    mg.Draw(drawopt)
 
     if opts["xaxis_range"]: mg.GetXaxis().SetRangeUser(*opts["xaxis_range"])
     if opts["yaxis_range"]: mg.GetYaxis().SetRangeUser(*opts["yaxis_range"])
     mg.GetXaxis().SetTitle(opts["xaxis_label"])
     mg.GetYaxis().SetTitle(opts["yaxis_label"])
 
-    legend.Draw()
+    if legend_labels: legend.Draw()
+
 
     if opts["xaxis_log"]:
         c1.SetLogx(1)
@@ -216,6 +243,20 @@ def plot_hist(bgs=[],colors=[],legend_labels=[],options={}):
     stack.GetYaxis().SetTitle(opts["yaxis_label"])
 
     legend.Draw()
+
+
+    if opts["legend_percentageinbox"]:
+        t = r.TLatex()
+        t.SetTextAlign(22)
+        t.SetTextColor(r.kWhite)
+        info = utils.get_legend_marker_info(legend)
+        t.SetTextSize(info["label_height"])
+        for xndc, yndc in info["coords"]:
+            # t.DrawLatexNDC(xndc,yndc,"50#scale[0.5]{#lower[-0.3]{%}}")
+            t.DrawLatexNDC(xndc,yndc,":)")
+
+
+
 
     if opts["xaxis_log"]:
         c1.SetLogx(1)
@@ -295,17 +336,19 @@ def set_palette(style, palette):
 def plot_hist_2d(hist,options={}):
 
     opts = Options(options, kind="2d")
+    print opts
 
     style = utils.set_style()
     style.SetPadBottomMargin(0.12)
     style.SetPadRightMargin(0.12)
     style.SetPadLeftMargin(0.10)
+    style.SetTitleX(0.3) #  Set the position of the title box
+    style.SetTitleAlign(23)
 
     set_palette(style, opts["palette_name"])
 
     c1 = r.TCanvas()
 
-    hist.SetTitle(opts["title"])
 
     if opts["xaxis_log"]: c1.SetLogx(1)
     if opts["yaxis_log"]: c1.SetLogy(1)
@@ -317,6 +360,7 @@ def plot_hist_2d(hist,options={}):
     hist.Draw(opts["draw_option_2d"])
     c1.Update()
 
+    hist.SetTitle(opts["title"])
     hist.GetXaxis().SetTitle(opts["xaxis_label"])
     hist.GetYaxis().SetTitle(opts["yaxis_label"])
     hist.GetZaxis().SetTitle(opts["zaxis_label"])
@@ -337,8 +381,11 @@ def plot_hist_2d(hist,options={}):
 
 def save(c1, opts):
 
-    print ">>> Saving {}".format(opts["output_name"])
-    c1.SaveAs(opts["output_name"])
+    fname = opts["output_name"]
+    print ">>> Saving {}".format(fname)
+    c1.SaveAs(fname)
+    if opts["output_ic"]:
+        os.system("ic {}".format(fname))
 
 
 def interpolate_colors_rgb(first, second, ndiv, _persist=[]):

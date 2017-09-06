@@ -154,6 +154,22 @@ def interpolate_tuples(first, second, ndiv):
         return [one+1.0*(two-one)*i/(ndiv-1) for i in range(ndiv)]
     return zip(*map(lambda x: interp1d(x[0],x[1],ndiv), zip(first,second)))
 
+def get_legend_marker_info(legend):
+    ncols = legend.GetNColumns()
+    nrows = legend.GetNRows()
+    x1 = legend.GetX1()
+    y1 = legend.GetY1()
+    x2 = legend.GetX2()
+    y2 = legend.GetY2()
+    margin = legend.GetMargin()*( x2-x1 )/ncols
+    boxwidth = margin
+    boxw = boxwidth*0.35
+    yspace = (y2-y1)/nrows;
+    coordsNDC = [] 
+    for ientry in range(nrows):
+        coordsNDC.append([x1+0.5*margin,y2-0.5*yspace-ientry*yspace])
+    return { "coords": coordsNDC, "label_height": 0.4*yspace }
+
 def draw_flag(c1, cx, cy, size, _persist=[]):
     c1.cd();
     aspect_ratio = c1.GetWindowWidth()/c1.GetWindowHeight();
