@@ -1,4 +1,5 @@
 import ROOT as r
+from math import log
 
 
 def set_style():
@@ -112,6 +113,35 @@ def set_style():
     
     return tdr_style
 
+def set_style_2d():
+    style = set_style()
+    style.SetPadBottomMargin(0.12)
+    style.SetPadRightMargin(0.12)
+    style.SetPadLeftMargin(0.10)
+    style.SetTitleAlign(23)
+    style.cd()
+
+    return style
+
+def set_palette(style, palette):
+    if palette == "default":
+        style.SetPalette(r.kBird) # default
+        style.SetNumberContours(128)
+    elif palette == "rainbow":
+        style.SetPalette(r.kRainBow) # blue to red
+        style.SetNumberContours(128)
+    elif palette == "susy": 
+        stops = array.array('d', [0.00, 0.34, 0.61, 0.84, 1.00])
+        red   = array.array('d', [0.50, 0.50, 1.00, 1.00, 1.00])
+        green = array.array('d', [0.50, 1.00, 1.00, 0.60, 0.50])
+        blue  = array.array('d', [1.00, 1.00, 0.50, 0.40, 0.50])
+        r.TColor.CreateGradientColorTable(len(stops), stops, red, green, blue, 255)
+        # print get_luminosities(len(stops), stops, red, green, blue, 255)
+        style.SetNumberContours(255)
+
+def get_default_colors():
+    return [r.kSpring-6, r.kAzure+7, r.kRed-6, r.kOrange-2, r.kCyan-7, r.kMagenta-7, r.kTeal+6, r.kGray+2]
+
 
 def hsv_to_rgb(h, s, v, scale=255.):
     """
@@ -129,6 +159,10 @@ def hsv_to_rgb(h, s, v, scale=255.):
     if i == 5: return [v, p, q]
 
 def rgb_to_hsv(r,g,b):
+    """
+    Reverse of hsv to rgb, but I think this is buggy.
+    Check before using (i.e., rgb_to_hsv(hsv_to_rgb(x)) == x)
+    """
     vmin = min(min(r,g),b)
     vmax = max(max(r,g),b)
     delta = 1.0*(vmax-vmin)
@@ -150,6 +184,10 @@ def rgb_to_hsv(r,g,b):
     return (hue,satur,value)
 
 def interpolate_tuples(first, second, ndiv):
+    """
+    Given two n-tuples, and a number of divisions (ndiv), create
+    ndiv n-tuples that are linearly spaced between first and second
+    """
     def interp1d(one,two,ndiv):
         return [one+1.0*(two-one)*i/(ndiv-1) for i in range(ndiv)]
     return zip(*map(lambda x: interp1d(x[0],x[1],ndiv), zip(first,second)))
@@ -168,9 +206,32 @@ def get_legend_marker_info(legend):
     coordsNDC = [] 
     for ientry in range(nrows):
         coordsNDC.append([x1+0.5*margin,y2-0.5*yspace-ientry*yspace])
-    return { "coords": coordsNDC, "label_height": 0.4*yspace }
+    return { "coords": coordsNDC, "label_height": 0.4*yspace, "box_width": boxw }
+
+
+def compute_darkness(r,g,b):
+    """
+    Compute darkness := 1 - luminance, given RGB
+    """
+    return 1.0 - (0.299*r + 0.587*g + 0.114*b)
+
+def interpolate_colors_rgb(first, second, ndiv, _persist=[]):
+    """
+    Create ndiv colors that are linearly interpolated between rgb triplets
+    first and second
+    """
+    colorcodes = []
+    for rgb in interpolate_tuples(first,second,ndiv):
+        index = r.TColor.GetFreeColorIndex()
+        _persist.append(r.TColor(index, *rgb))
+        colorcodes.append(index)
+    return colorcodes
+
 
 def draw_flag(c1, cx, cy, size, _persist=[]):
+    """
+    Draw US flag
+    """
     c1.cd();
     aspect_ratio = c1.GetWindowWidth()/c1.GetWindowHeight();
     xmin = cx-size/2.;
@@ -247,3 +308,51 @@ def draw_flag(c1, cx, cy, size, _persist=[]):
     _persist.append(lab)
 
     c1.cd();
+
+def draw_smart_2d_bin_labels(hist,opts):
+    """
+    Replicate the TEXT draw option for TH2 with TLatex drawn everywhere
+    but calculate the background color of each bin and draw text as 
+    white or black depending on the darkness
+    """
+    darknesses = [] # darkness values
+    lights = [] # lighter colors
+    darks = [] # darker colors
+    ncolors = r.gStyle.GetNumberContours()
+    for ic in range(ncolors):
+        code = r.gStyle.GetColorPalette(ic)
+        color = r.gROOT.GetColor(code)
+        red = color.GetRed()
+        green = color.GetGreen()
+        blue = color.GetBlue()
+        darks.append(r.TColor.GetColorDark(code))
+        lights.append(r.TColor.GetColorBright(code))
+        darkness = compute_darkness(red, green, blue)
+        darknesses.append(darkness)
+    labels = []
+    zlow, zhigh = max(1,hist.GetMinimum()), hist.GetMaximum()
+    if opts["zaxis_range"]: zlow, zhigh = opts["zaxis_range"]
+    t = r.TLatex()
+    t.SetTextAlign(22)
+    t.SetTextSize(0.025)
+    fmt = opts["bin_text_format_smart"]
+    for ix in range(1,hist.GetNbinsX()+1):
+        for iy in range(1,hist.GetNbinsY()+1):
+            xcent = hist.GetXaxis().GetBinCenter(ix)
+            ycent = hist.GetYaxis().GetBinCenter(iy)
+            val = hist.GetBinContent(ix,iy)
+            err = hist.GetBinError(ix,iy)
+            if val == 0: continue
+            if opts["zaxis_log"]:
+                frac = (log(min(val,zhigh))-log(zlow))/(log(zhigh)-log(zlow))
+            else:
+                frac = (min(val,zhigh)-zlow)/(zhigh-zlow)
+            if frac > 1.: continue
+            idx = int(frac*(len(darknesses)-1))
+            if darknesses[idx] < 0.7:
+                t.SetTextColor(r.kBlack)
+            else:
+                t.SetTextColor(r.kWhite)
+            # t.SetTextColor(darks[idx])
+            t.DrawLatex(xcent,ycent,fmt.format(val,err))
+            labels.append(t)
