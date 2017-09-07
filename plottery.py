@@ -306,28 +306,28 @@ def plot_hist(bgs=[],colors=[],legend_labels=[],options={}):
     return c1
 
 def handle_axes(c1, obj, opts):
+
+    obj.GetXaxis().SetTitle(opts["xaxis_label"])
+    if opts["xaxis_range"]: obj.GetXaxis().SetRangeUser(*opts["xaxis_range"])
     if opts["xaxis_log"]:
         c1.SetLogx(1)
         obj.GetXaxis().SetMoreLogLabels(opts["xaxis_moreloglabels"])
         obj.GetXaxis().SetNoExponent(opts["xaxis_noexponents"])
+
+    obj.GetYaxis().SetTitle(opts["yaxis_label"])
+    if opts["yaxis_range"]: obj.GetYaxis().SetRangeUser(*opts["yaxis_range"])
     if opts["yaxis_log"]:
         c1.SetLogy(1)
         obj.GetYaxis().SetMoreLogLabels(opts["yaxis_moreloglabels"])
         obj.GetYaxis().SetNoExponent(opts["yaxis_noexponents"])
-    if opts["zaxis_log"] and hasattr(obj, "GetZaxis"):
-        c1.SetLogz(1)
-        obj.GetZaxis().SetMoreLogLabels(opts["zaxis_moreloglabels"])
-        obj.GetZaxis().SetNoExponent(opts["zaxis_noexponents"])
-
-    obj.GetXaxis().SetTitle(opts["xaxis_label"])
-    if opts["xaxis_range"]: obj.GetXaxis().SetRangeUser(*opts["xaxis_range"])
-
-    obj.GetYaxis().SetTitle(opts["yaxis_label"])
-    if opts["yaxis_range"]: obj.GetYaxis().SetRangeUser(*opts["yaxis_range"])
 
     if hasattr(obj, "GetZaxis"):
         obj.GetZaxis().SetTitle(opts["zaxis_label"])
         if opts["zaxis_range"]: obj.GetZaxis().SetRangeUser(*opts["zaxis_range"])
+        if opts["zaxis_log"]:
+            c1.SetLogz(1)
+            obj.GetZaxis().SetMoreLogLabels(opts["zaxis_moreloglabels"])
+            obj.GetZaxis().SetNoExponent(opts["zaxis_noexponents"])
 
 
 def plot_hist_2d(hist,options={}):
@@ -389,11 +389,10 @@ def save(c1, opts):
     if opts["output_ic"]:
         os.system("ic {}".format(fname))
 
-
-
 if __name__ == "__main__":
 
     pass
+
     h1 = r.TH1F("h1","h1",30,0,5)
     h1.FillRandom("gaus",4000)
     h2 = r.TH1F("h2","h2",30,0,5)
