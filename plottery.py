@@ -31,7 +31,7 @@ class Options(object):
             "zaxis_log": { "type": "Boolean", "desc": "log scale z-axis", "default": False, "kinds": ["2d"], },
 
             "xaxis_label": { "type": "String", "desc": "label for x axis", "default": "x title", "kinds": ["1d","1dratio","graph","2d"], },
-            "yaxis_label": { "type": "String", "desc": "label for y axis", "default": "y title", "kinds": ["1d","1dratio","graph","2d"], },
+            "yaxis_label": { "type": "String", "desc": "label for y axis", "default": "Events", "kinds": ["1d","1dratio","graph","2d"], },
             "zaxis_label": { "type": "String", "desc": "label for z axis", "default": "", "kinds": ["2d"], },
 
             "xaxis_moreloglabels": { "type": "Boolean", "desc": "show denser labels with logscale for x axis", "default": False, "kinds": ["1d","1dratio","graph","2d"], },
@@ -46,7 +46,7 @@ class Options(object):
             "zaxis_range": { "type": "List", "desc": "2 elements to specify z axis range", "default": [], "kinds": ["2d"], },
 
             # Overall
-            "title": { "type": "String", "desc": "plot title", "default": "Plot", "kinds": ["1d","1dratio","graph","2d"], },
+            "title": { "type": "String", "desc": "plot title", "default": "", "kinds": ["1d","1dratio","graph","2d"], },
             "draw_option_2d": { "type": "String", "desc": "hist draw option", "default": "colz", "kinds": ["2d"], },
 
             # CMS things
@@ -236,6 +236,19 @@ def plot_hist(bgs=[],colors=[],legend_labels=[],options={}):
 
     legend = get_legend(opts)
 
+    do_ratio = True
+    if do_ratio:
+        pad_main = r.TPad("pad1","pad1",0.0,0.16,1.0,1.0)
+        pad_ratio = r.TPad("pad2","pad2",0.0, 0.00, 1.0, 0.17)
+        pad_main.Draw()
+        pad_ratio.Draw()
+    else:
+        pad_main = r.TPad("pad1","pad1",0.,0.,1.,1.)
+        pad_main.Draw()
+
+    pad_main.cd()
+
+
     # sort backgrounds, but make sure all parameters have same length
     if len(colors) < len(bgs):
         print ">>> Provided only {} colors for {} backgrounds, so using defalt palette".format(len(colors),len(bgs))
@@ -249,7 +262,8 @@ def plot_hist(bgs=[],colors=[],legend_labels=[],options={}):
             "INTEGRAL_ASCENDING": lambda x: x[0].Integral(),
             }
     which_method = "INTEGRAL_ASCENDING"
-    bgs, colors, legend_labels = zip(*sorted(zip(bgs,colors,legend_labels), key=sort_methods[which_method]))
+    original_indices = range(len(bgs))
+    bgs, colors, legend_labels, original_indices = zip(*sorted(zip(bgs,colors,legend_labels,original_indices), key=sort_methods[which_method]))
 
     stack = r.THStack("stack", "stack")
     for ibg,bg in enumerate(bgs):
@@ -298,9 +312,45 @@ def plot_hist(bgs=[],colors=[],legend_labels=[],options={}):
             # t.SetTextColor(r.TColor.GetColorDark(bg.GetFillColor()))
             t.DrawLatexNDC(xndc+nudge_right,yndc,"%i#scale[0.5]{#lower[-0.2]{%%}}" % (percentage))
 
-    draw_cms_lumi(c1, opts)
-    handle_axes(c1, stack, opts)
-    draw_extra_stuff(c1, opts)
+
+    draw_cms_lumi(pad_main, opts)
+    handle_axes(pad_main, stack, opts)
+    draw_extra_stuff(pad_main, opts)
+
+    if do_ratio:
+        pad_ratio.cd()
+
+        ratio_name = "Data/MC"
+        ratio_max = 2.
+
+        ratio = bgs[1].Clone("ratio")
+        ratio.Divide(bgs[2])
+
+        ratio.SetMarkerStyle(20)
+        ratio.SetMarkerSize(1.0)
+        ratio.SetLineWidth(2)
+        ratio.SetTitle("")
+
+        ratio.GetYaxis().SetTitle(ratio_name)
+        ratio.GetYaxis().SetTitleOffset(0.25)
+        ratio.GetYaxis().SetTitleSize(0.2)
+        ratio.GetYaxis().SetNdivisions(505)
+        ratio.GetYaxis().SetLabelSize(0.13)
+        ratio.GetYaxis().SetRangeUser(0.,ratio_max)
+
+        ratio.GetXaxis().SetLabelSize(0.)
+        ratio.GetXaxis().SetTickSize(0.06)
+
+        line = r.TLine()
+        line.SetLineColor(r.kGray+2);
+        line.SetLineWidth(2);
+
+        ratio.Draw("PE")
+        line.DrawLine(ratio.GetXaxis().GetBinLowEdge(1),1.,ratio.GetXaxis().GetBinUpEdge(ratio.GetNbinsX()),1.)
+
+        pad_main.cd()
+
+
     save(c1, opts)
 
     return c1
@@ -408,6 +458,7 @@ if __name__ == "__main__":
                 "output_name": "test1.pdf",
                 "legend_percentageinbox": True,
                 "cms_label": "Preliminary",
+                # "yaxis_log": True,
                 "lumi_value": 1.,
                 "output_ic": True,
                 }

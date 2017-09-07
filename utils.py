@@ -62,9 +62,9 @@ def set_style():
     tdr_style.SetStatW(0.15)
 
     # Margins:
-    tdr_style.SetPadTopMargin(0.10)
-    tdr_style.SetPadBottomMargin(0.15)
-    tdr_style.SetPadLeftMargin(0.15)
+    tdr_style.SetPadTopMargin(0.08)
+    tdr_style.SetPadBottomMargin(0.12)
+    tdr_style.SetPadLeftMargin(0.13)
     tdr_style.SetPadRightMargin(0.04)
 
     # For the Global title:
@@ -85,8 +85,8 @@ def set_style():
     tdr_style.SetTitleColor(1, "XYZ")
     tdr_style.SetTitleFont(42, "XYZ")
     tdr_style.SetTitleSize(0.045, "XYZ")
-    tdr_style.SetTitleOffset(1.17, "X")
-    tdr_style.SetTitleOffset(1.15, "Y")
+    tdr_style.SetTitleOffset(1.02, "X")
+    tdr_style.SetTitleOffset(1.26, "Y")
 
     # For the axis labels:
     tdr_style.SetLabelColor(1, "XYZ")
