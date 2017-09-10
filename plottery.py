@@ -107,7 +107,7 @@ class Options(object):
             kinds = obj["kinds"]
             if self.kind and self.kind not in kinds: continue
             if type(default) is str: default = '"{}"'.format(default)
-            print "* {} [{}]\n    {} (default: {})".format(key,typ,desc,default)
+            print "* `{}` [{}]\n    {} (default: {})".format(key,typ,desc,default)
 
     def check_options(self):
         for name,val in self.options.items():
