@@ -9,8 +9,9 @@ import plottery as ply
 3 to show a TH2D with smart bin labels...fancy
 """
 # which_tests = [0]
-# which_tests = [1, 2, 3]
-which_tests = [2]
+which_tests = [1, 2, 3]
+# which_tests = [3]
+# which_tests = [2]
 
 for which_test in which_tests:
 
@@ -20,26 +21,54 @@ for which_test in which_tests:
 
     if which_test == 1:
 
-        h1 = r.TH1F("h1","h1",30,0,5)
-        h1.FillRandom("gaus",4000)
+        scalefact_all = 1000
+        scalefact_mc = 7
+        
+        nbins = 30
+        h1 = r.TH1F("h1","h1",nbins,0,5)
+        h1.FillRandom("gaus",int(scalefact_mc*6*scalefact_all))
+        h1.Scale(1./scalefact_mc)
 
-        h2 = r.TH1F("h2","h2",30,0,5)
-        h2.FillRandom("expo",4000)
+        h2 = r.TH1F("h2","h2",nbins,0,5)
+        h2.FillRandom("expo",int(scalefact_mc*5.2*scalefact_all))
+        h2.Scale(1./scalefact_mc)
 
-        h3 = r.TH1F("h3","h3",15,2.5,5)
-        h3.FillRandom("gaus",1500)
+        h3 = r.TH1F("h3","h3",nbins,0,5)
+        h3.FillRandom("landau",int(scalefact_mc*8*scalefact_all))
+        h3.Scale(1./scalefact_mc)
+
+        hdata = r.TH1F("hdata","hdata",nbins,0,5)
+        hdata.FillRandom("gaus",int(6*scalefact_all))
+        hdata.FillRandom("expo",int(5.2*scalefact_all))
+        hdata.FillRandom("landau",int(8*scalefact_all))
 
         ply.plot_hist(
+                data=hdata,
                 bgs=[h1,h2,h3],
                 colors = [r.kRed-2, r.kAzure+2, r.kGreen-2],
                 legend_labels = ["first", "second", "third"],
                 options = {
-                    "do_stack": False,
+                    "do_stack": True,
+                    "legend_alignment": "bottom left",
+                    # "legend_scalex": 1.3,
+                    # "legend_scaley": 0.7,
+                    # "legend_ncolumns": 2,
+                    "legend_opacity": 0.5,
+                    "extra_text": ["#slash{E}_{T} > 50 GeV","N_{jets} #geq 2","H_{T} > 300 GeV"],
+                    "extra_text_xpos": 0.35,
+                    # "yaxis_log": True,
+                    "yaxis_moreloglabels": True,
+                    "ratio_range":[0.8,1.2],
+                    # "ratio_numden_indices": [0,1],
+                    # "hist_disable_xerrors": True,
+                    # "ratio_chi2prob": True,
                     "output_name": "test1.pdf",
                     "legend_percentageinbox": True,
                     "cms_label": "Preliminary",
                     "lumi_value": 1.,
                     "output_ic": True,
+                    "us_flag": True,
+                    # "output_jsroot": True,
                     }
                 )
 
@@ -56,11 +85,10 @@ for which_test in which_tests:
                     ([0.1,0.2,0.3,0.4,0.5,0.6,0.7,1.0], [0.1,0.2,0.3,0.45,0.6,0.7,0.8,1.0],[0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1],[0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1]),
                     ],
                 colors = [r.kRed-2, r.kGreen-2, r.kAzure+2],
-                legend_labels = ["red", "white", "blue"],
+                legend_labels = ["red", "green", "blue"],
                 options = {
                     "legend_alignment": "bottom right",
-                    "legend_scalex": 0.4,
-                    "legend_scaley": 0.8,
+                    "legend_scalex": 0.7,
                     "xaxis_label": "bkg. eff.",
                     "yaxis_label": "sig. eff.",
                     "yaxis_log": True,
@@ -89,6 +117,7 @@ for which_test in which_tests:
                     "bin_text_smart": True,
                     "output_name": "test3.pdf",
                     "us_flag": True,
+                    # "us_flag_coordinates": [0.9,0.96,0.06],
                     "output_ic": True,
                     }
                 )

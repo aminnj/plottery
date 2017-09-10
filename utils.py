@@ -81,6 +81,9 @@ def set_style():
     tdr_style.SetTitleBorderSize(0)
     tdr_style.SetTitleFillColor(0)
 
+    r.TGaxis.SetExponentOffset(-0.06, 0, "y")
+    r.TGaxis.SetExponentOffset(-0.86, -0.08, "x")
+
     # For the axis titles:
     tdr_style.SetTitleColor(1, "XYZ")
     tdr_style.SetTitleFont(42, "XYZ")
@@ -204,10 +207,18 @@ def get_legend_marker_info(legend):
     boxw = boxwidth*0.35
     yspace = (y2-y1)/nrows;
     coordsNDC = [] 
-    for ientry in range(nrows):
-        coordsNDC.append([x1+0.5*margin,y2-0.5*yspace-ientry*yspace])
-    return { "coords": coordsNDC, "label_height": 0.4*yspace, "box_width": boxw }
+    for ientry in range(nrows*ncols):
+        icol = ientry // nrows
+        irow_in_column = ientry % nrows
+        coordsNDC.append([x1+0.5*margin+((x2-x1)/ncols-(boxwidth*0.65))*icol,y2-0.5*yspace-irow_in_column*yspace])
+    return { "coords": coordsNDC, "label_height": (0.6-0.1*ncols)*yspace, "box_width": boxw }
 
+def get_stack_maximum(data, stack):
+    scalefact = 1.2
+    if data:
+        return scalefact*max(data.GetMaximum(),stack.GetMaximum())
+    else:
+        return scalefact*stack.GetMaximum()
 
 def compute_darkness(r,g,b):
     """
@@ -233,7 +244,7 @@ def draw_flag(c1, cx, cy, size, _persist=[]):
     Draw US flag
     """
     c1.cd();
-    aspect_ratio = c1.GetWindowWidth()/c1.GetWindowHeight();
+    aspect_ratio = 1.33 # c1.GetWindowWidth()/c1.GetWindowHeight();
     xmin = cx-size/2.;
     xmax = cx+size/2.;
     ymin = cy-size/(2./aspect_ratio);
