@@ -10,7 +10,7 @@ import plottery as ply
 """
 which_tests = [0]
 # which_tests = [1, 2, 3]
-# which_tests = [3]
+which_tests = [4]
 # which_tests = [2]
 
 for which_test in which_tests:
@@ -117,6 +117,30 @@ for which_test in which_tests:
                     "bin_text_smart": True,
                     "output_name": "test3.pdf",
                     "us_flag": True,
+                    # "us_flag_coordinates": [0.9,0.96,0.06],
+                    "output_ic": True,
+                    }
+                )
+
+
+    elif which_test == 4:
+
+        ########################################
+        ################# WIP ##################
+        ########################################
+
+        xyg = r.TF2("xygaus","xygaus",0,10,0,10);
+        xyg.SetParameters(1,4,2,6,2)  # amplitude, meanx,sigmax,meany,sigmay
+        h2 = r.TH2F("h2","h2",10,0,10, 10,0,10)
+        h2.FillRandom("xygaus",10000)
+        ply.plot_hist_2d_projections(
+                h2,
+                options = {
+                    "zaxis_log": True,
+                    "output_name": "test.pdf",
+                    "bin_text_smart": False,
+                    "output_name": "test4.pdf",
+                    "us_flag": False,
                     # "us_flag_coordinates": [0.9,0.96,0.06],
                     "output_ic": True,
                     }

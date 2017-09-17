@@ -5,6 +5,7 @@ import ROOT as r
 import utils
 from array import array
 import math
+from itertools import cycle
 
 r.gROOT.SetBatch(1) # please don't open a window
 r.gErrorIgnoreLevel = r.kError # ignore Info/Warnings
@@ -59,6 +60,7 @@ class Options(object):
 
             # Overall
             "title": { "type": "String", "desc": "plot title", "default": "", "kinds": ["1dratio","graph","2d"], },
+            "draw_points": { "type": "Boolean", "desc": "draw points instead of fill", "default": False, "kinds": ["1d","1dratio"], },
             "draw_option_2d": { "type": "String", "desc": "hist draw option", "default": "colz", "kinds": ["2d"], },
 
             # CMS things
@@ -255,7 +257,7 @@ def get_legend(opts):
     return legend
 
 
-def plot_hist(data=None,bgs=[],colors=[],legend_labels=[],options={}):
+def plot_hist(data=None,bgs=[],sigs=[],colors=[],legend_labels=[],sig_labels=[],options={}):
 
     opts = Options(options, kind="1dratio")
 
@@ -318,11 +320,32 @@ def plot_hist(data=None,bgs=[],colors=[],legend_labels=[],options={}):
             bg.SetMarkerColor(colors[ibg])
             bg.SetMarkerSize(0)
             bg.SetFillColorAlpha(colors[ibg],1 if opts["do_stack"] else 0.5)
+            if opts["draw_points"]:
+                bg.SetLineWidth(3)
+                bg.SetMarkerStyle(20)
+                bg.SetLineColor(colors[ibg])
+                bg.SetMarkerColor(colors[ibg])
+                bg.SetMarkerSize(0.8)
             if opts["hist_line_none"]:
                 bg.SetLineWidth(0)
         if ibg < len(legend_labels):
-            legend.AddEntry(bg, legend_labels[ibg], "F")
+            entry_style = "F"
+            if opts["draw_points"]:
+                entry_style = "LPE"
+            legend.AddEntry(bg, legend_labels[ibg], entry_style)
         stack.Add(bg)
+
+    if sigs:
+        colors = cycle([r.kRed, r.kOrange-4, r.kTeal-5])
+        for hsig,signame,color in zip(sigs, sig_labels,colors):
+            hsig.SetMarkerStyle(1) # 2 has errors
+            hsig.SetMarkerColor(color)
+            hsig.SetLineWidth(3)
+            hsig.SetMarkerSize(0.8)
+            hsig.SetLineColor(color)
+            legend.AddEntry(hsig,signame, "LPE")
+
+
 
     stack.SetTitle(opts["title"])
 
@@ -333,9 +356,16 @@ def plot_hist(data=None,bgs=[],colors=[],legend_labels=[],options={}):
         drawopt += "e1"
     if opts["show_bkg_smooth"]:
         drawopt += "C"
+    if opts["draw_points"]:
+        drawopt += "PE"
     stack.Draw(drawopt)
     stack.SetMaximum(utils.get_stack_maximum(data,stack))
 
+    # # print bgs[0].BinContent(
+    # stack.Dump()
+    # print dir(stack)
+    # # print stack.GetYaxis().GetXmin()
+    # # print stack.GetYaxis().GetXmax()
 
     if has_data:
 
@@ -344,11 +374,27 @@ def plot_hist(data=None,bgs=[],colors=[],legend_labels=[],options={}):
 
         data.Draw("samepe")
 
+    if sigs:
+        for hsig in sigs:
+            hsig.Draw("samepe")
+
     legend.Draw()
 
+    # allbgs = bgs[0].Clone("allbgs")
+    # allbgs.Reset()
+    # for hist in bgs:
+    #     allbgs.Add(hist)
+    # # hstack_tot = stack.GetHistogram() # enabling this screws up the percentagesinbox
+    # # print hstack_tot.GetMinimum(), hstack_tot.GetMaximum()
+    # # print list(hstack_tot)
+    # datasource = r.TLimitDataSource(sigs[0],allbgs,hdata);
+    # print datasource
+    # confidence_object = r.TLimit.ComputeLimit(datasource,500000,True)
+    # print "CLsb", confidence_object.CLsb()
+    # print "expected CLs", confidence_object.GetExpectedCLs_b()
 
     if opts["legend_percentageinbox"]:
-        draw_percentageinbox(legend, bgs, opts, has_data=has_data)
+        draw_percentageinbox(legend, bgs, sigs, opts, has_data=has_data)
 
     draw_cms_lumi(pad_main, opts)
     handle_axes(pad_main, stack, opts)
@@ -447,21 +493,23 @@ def do_style_ratio(ratio, opts):
     ratio.GetXaxis().SetLabelSize(0.)
     ratio.GetXaxis().SetTickSize(0.06)
 
-def draw_percentageinbox(legend, bgs, opts, has_data=False):
+def draw_percentageinbox(legend, bgs, sigs, opts, has_data=False):
     t = r.TLatex()
     t.SetTextAlign(22)
     t.SetTextFont(42)
     t.SetTextColor(r.kWhite)
     info = utils.get_legend_marker_info(legend)
     t.SetTextSize(info["label_height"])
+    all_entries = list(bgs) + list(sigs)
     total_integral = sum(bg.Integral() for bg in bgs)
     # we want the number to be centered, without the % symbol, so nudge the percentage text right a bit
     nudge_right = info["box_width"]*0.15
     for icoord, (xndc, yndc) in enumerate(info["coords"]):
+        # if we have data, skip it and restart numbering from 0
         if has_data:
             if icoord == 0: continue
             icoord -= 1
-        bg = bgs[icoord]
+        bg = all_entries[icoord]
         percentage = int(100.0*bg.Integral()/total_integral)
         color = r.gROOT.GetColor(bg.GetFillColor())
         red = color.GetRed()
@@ -526,6 +574,110 @@ def plot_hist_2d(hist,options={}):
     draw_extra_stuff(c1, opts)
     save(c1, opts)
 
+def plot_hist_2d_projections(hist,options={}):
+
+    c1 = r.TCanvas("c1","c1",800,800)
+
+    style = utils.set_style_2d()
+    # style.SetPadRightMargin(0.)
+    # style.SetPadTopMargin(0.)
+
+    # pad_main = r.TPad("pad1","pad1",0.20,0.20,1.0,1.0)
+    # pad_bottom = r.TPad("pad2","pad2",0.0, 0.0, 1.0, 0.20)
+    # pad_left = r.TPad("pad2","pad2",0.0, 0.0, 0.20, 1)
+
+    pad_main = r.TPad("pad1","pad1",0,0,0.8,0.8)
+    pad_top = r.TPad("pad2","pad2",0,0.8,0.8,1)
+    pad_right = r.TPad("pad3","pad3",0.8,0,1,0.8)
+    pad_corner = r.TPad("pad4","pad4",0.8,0.8,1.,1.)
+
+    pad_main.SetRightMargin(0.01)
+    pad_top.SetRightMargin(0.)
+    pad_top.SetBottomMargin(0.)
+    pad_main.SetTopMargin(0.01)
+    pad_right.SetTopMargin(0.)
+    pad_right.SetLeftMargin(0.)
+
+    pad_top.Draw()
+    pad_right.Draw()
+    pad_main.Draw()
+    pad_corner.Draw()
+
+
+    pad_top.cd()
+    projx = hist.ProjectionX()
+    print projx
+
+    projx.SetMarkerStyle(20)
+    projx.SetMarkerSize(0.8)
+    projx.SetLineColor(r.kBlack)
+    projx.SetLineWidth(2)
+    projx.SetTitle("")
+    projx.GetYaxis().SetTitleOffset(0.25)
+    projx.GetYaxis().SetTitleSize(0.2)
+    projx.GetYaxis().SetNdivisions(405)
+    projx.GetYaxis().SetLabelSize(0.13)
+    projx.GetXaxis().SetLabelSize(0.)
+    projx.GetXaxis().SetTickSize(0.06)
+
+    projx.Draw("LPE")
+
+    pad_right.cd()
+    projy = hist.ProjectionY()
+    print projy
+    projy.SetFillStyle(0)
+
+    projy.SetMarkerStyle(20)
+    projy.SetMarkerSize(0.8)
+    projy.SetLineWidth(2)
+    projy.SetTitle("")
+    projy.GetYaxis().SetTitleOffset(0.25)
+    projy.GetYaxis().SetTitleSize(0.2)
+    projy.GetYaxis().SetNdivisions(505)
+    projy.GetYaxis().SetLabelSize(0.13)
+    projy.GetXaxis().SetLabelSize(0.)
+    projy.GetXaxis().SetTickSize(0.06)
+
+    projy.Draw("hbarLPE")
+
+    pad_main.cd()
+
+
+    opts = Options(options, kind="2d")
+
+
+    utils.set_palette(style, opts["palette_name"])
+
+
+    hist.Draw(opts["draw_option_2d"])
+
+    # pad_corner.cd()
+    # hist.Draw(opts["draw_option_2d"])
+    # r.gPad.Update()
+    # palette = hist.GetListOfFunctions().FindObject("palette")
+    # print list(hist.GetListOfFunctions())
+    # # palette.SetX1NDC(0.0);
+    # # palette.SetY1NDC(0.0);
+    # # palette.SetX2NDC(1.0);
+    # # palette.SetY2NDC(1.0);
+    # palette.Draw()
+    # r.gPad.Modified();
+    # r.gPad.Update();
+    # pad_main.cd()
+
+    hist.SetTitle(opts["title"])
+
+    hist.SetMarkerSize(opts["bin_text_size"])
+    style.SetPaintTextFormat(opts["bin_text_format"])
+
+    if opts["bin_text_smart"]:
+        utils.draw_smart_2d_bin_labels(hist, opts)
+
+    draw_cms_lumi(pad_main, opts)
+    handle_axes(pad_main, hist, opts)
+    draw_extra_stuff(pad_main, opts)
+    save(c1, opts)
+
 def draw_cms_lumi(c1, opts, _persist=[]):
     t = r.TLatex()
     t.SetTextAlign(11) # align bottom left corner of text
@@ -576,7 +728,7 @@ if __name__ == "__main__":
 
     pass
 
-    scalefact_all = 1000
+    scalefact_all = 100
     scalefact_mc = 7
     
     nbins = 30
@@ -596,13 +748,21 @@ if __name__ == "__main__":
     hdata.FillRandom("gaus",int(6*scalefact_all))
     hdata.FillRandom("expo",int(5.2*scalefact_all))
     hdata.FillRandom("landau",int(8*scalefact_all))
+    hdata.FillRandom("expo",int(1*scalefact_all)) # signal injection
+
+    hsig = r.TH1F("hsig","hsig",nbins,0,5)
+    hsig.FillRandom("expo",int(scalefact_mc*1*scalefact_all))
+    hsig.Scale(1./scalefact_mc)
 
     plot_hist(
             data=hdata,
             bgs=[h1,h2,h3],
+            sigs = [hsig],
+            sig_labels = ["SUSY"],
             colors = [r.kRed-2, r.kAzure+2, r.kGreen-2],
             legend_labels = ["first", "second", "third"],
             options = {
+                # "draw_points": True,
                 "do_stack": True,
                 "legend_alignment": "bottom left",
                 # "legend_scalex": 1.3,
@@ -627,4 +787,35 @@ if __name__ == "__main__":
                 # "output_jsroot": True,
                 }
             )
+
+    # plot_hist(
+    #         data=None,
+    #         bgs=[h1,h2],
+    #         colors = [r.kRed-2, r.kAzure+2],
+    #         legend_labels = ["first", "second", "third"],
+    #         options = {
+    #             "do_stack": False,
+    #             "legend_alignment": "bottom left",
+    #             "legend_scalex": 0.9,
+    #             "legend_scaley": 0.6,
+    #             # "legend_ncolumns": 2,
+    #             "legend_opacity": 0.5,
+    #             "extra_text": ["#slash{E}_{T} > 50 GeV","N_{jets} #geq 2","H_{T} > 300 GeV"],
+    #             "extra_text_xpos": 0.35,
+    #             # "yaxis_log": True,
+    #             # "show_bkg_smooth": True,
+    #             "yaxis_moreloglabels": True,
+    #             "ratio_range":[0.8,1.2],
+    #             # "ratio_numden_indices": [0,1],
+    #             # "hist_disable_xerrors": True,
+    #             # "ratio_chi2prob": True,
+    #             "output_name": "test1.pdf",
+    #             "legend_percentageinbox": True,
+    #             "cms_label": "Preliminary",
+    #             "lumi_value": "-inf",
+    #             "output_ic": True,
+    #             "us_flag": True,
+    #             # "output_jsroot": True,
+    #             }
+    #         )
 
