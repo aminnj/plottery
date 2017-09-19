@@ -757,7 +757,8 @@ if __name__ == "__main__":
             options = {
                 # "draw_points": True,
                 "do_stack": True,
-                "legend_alignment": "bottom left",
+                # "legend_alignment": "bottom left",
+                "legend_smart": True,
                 # "legend_alignment": "top right",
                 # "legend_scalex": 1.3,
                 # "legend_scaley": 0.7,
@@ -776,7 +777,7 @@ if __name__ == "__main__":
                 "legend_percentageinbox": True,
                 "cms_label": "Preliminary",
                 "lumi_value": "-inf",
-                "output_ic": True,
+                "output_ic": False,
                 "us_flag": True,
                 # "output_jsroot": True,
                 }

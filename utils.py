@@ -368,13 +368,45 @@ def draw_smart_2d_bin_labels(hist,opts):
             t.DrawLatex(xcent,ycent,fmt.format(val,err))
             labels.append(t)
 
-def smart_legend(legend, bgs, data=None, ymax=None):
+def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niters=5):
     """
     Given a TLegend, backgrounds, and optionally data,
     find a location where the TLegend doesn't overlap these objects
     preserving the width and height of the TLegend object
-    by scanning over a Nx x Ny grid
+    by scanning over a Nx x Ny grid. If a non-overlapping position is not
+    found, we decrease the legend width and height and try scanning again.
+    Repeat this `niters` times before giving up.
     """
+
+    def bar_in_box((x1,y1), (bx1,bx2,by1,by2)):
+        # return true if any part of bar (top of bar represented by (x1,y1))
+        # overlaps with box (bx1,bx2,by1,by2)
+        does_y_overlap = by1 <= y1 <= by2
+        if does_y_overlap: return x1 > bx1
+        else: return False
+
+    def point_in_box((x1,y1), (bx1,bx2,by1,by2)):
+        # return true if point is in box
+        return (by1 <= y1 <= by2) or (bx1 <= x1 <= bx2)
+
+    def is_good_legend(coords, pseudo_coord):
+        # return true if this pseudolegend (given by 4-tuple pseudo_coord)
+        # is a good legend (i.e., doesn't overlap with list of pairs in coords
+        for coord in coords:
+            if bar_in_box(coord, pseudo_coord): return False
+        return True
+
+    def distance_from_corner(pseudo_coord):
+        # return euclidean distance of corner of pseudo legend cloest to plot
+        # pane corner (note, this is rough)
+        x1,x2,y1,y2 = pseudo_coord 
+        dist = 0.
+        if 0.5*(y1+y2) > 0.5: dist += (1.0-y2)**2.
+        else: dist += (y1)**2.
+        if 0.5*(x1+x2) > 0.5: dist += (1.0-x2)**2.
+        else: dist += (x1)**2.
+        return dist**0.5
+
 
     allbgs = bgs[0].Clone("allbgs")
     allbgs.Reset()
@@ -394,6 +426,7 @@ def smart_legend(legend, bgs, data=None, ymax=None):
     xmin = allbgs.GetBinCenter(1)
     xmax = allbgs.GetBinCenter(allbgs.GetNbinsX())
     coords = []
+
     # get coordinates of objects we don't want to overlap
     for ibin in range(1,allbgs.GetNbinsX()+1):
         xval = allbgs.GetBinCenter(ibin)
@@ -402,13 +435,14 @@ def smart_legend(legend, bgs, data=None, ymax=None):
         if data and data.GetBinContent(ibin) > yval:
                 xval = data.GetBinCenter(ibin)
                 yval = data.GetBinContent(ibin)
-        yfrac = yval/ymax
+        yfrac = (yval - ymin) / (ymax - ymin)
         xfrac = (xval - xmin) / (xmax - xmin) 
         # convert from 0..1 inside plotting pane, to pad coordinates (stupid margins)
         xcoord = xfrac * (1. - r.gPad.GetLeftMargin() - r.gPad.GetRightMargin()) + r.gPad.GetLeftMargin()
         ycoord = yfrac * (1. - r.gPad.GetTopMargin() - r.gPad.GetBottomMargin()) + r.gPad.GetBottomMargin()
         coord = (xcoord, ycoord)
         coords.append(coord)
+
     # # draw x's to debug
     # t = r.TLatex()
     # t.SetTextAlign(22)
@@ -417,54 +451,42 @@ def smart_legend(legend, bgs, data=None, ymax=None):
     # t.SetTextSize(0.03)
     # for coord in coords:
     #     t.DrawLatexNDC(coord[0],coord[1],"x")
-    # then implement overlapping logic
-    def bar_in_box((x1,y1), (bx1,bx2,by1,by2)):
-        # return true if any part of bar (top of bar represented by (x1,y1))
-        # overlaps with box (bx1,bx2,by1,by2)
-        does_y_overlap = by1 <= y1 <= by2
-        if does_y_overlap: return x1 > bx1
-        else: return False
+
     # generate list of legend coordinate candidates, preserving original width, height
-    # move around the original legend by 10 increments in x and 10 in y (~100 pseudo legends)
-    Nx = 25
-    Ny = 25
+    # move around the original legend by Nx increments in x and Ny in y
+    # if we don't find anything, decrease the size and try again
     paddingx = 0.03
     paddingy = 0.03
-    pseudo_coords = []
+    for iiter in range(niters):
+        pseudo_coords = []
+        for ix in range(Nx):
+            pseudox1 = 1.0*ix/Nx + paddingx + r.gPad.GetLeftMargin()
+            if pseudox1 > 1.-r.gPad.GetRightMargin()-paddingx: continue
+            pseudox2 = pseudox1 + legend_width
+            if pseudox2 > 1.-r.gPad.GetRightMargin()-paddingx: continue
+            for iy in range(Ny):
+                pseudoy1 = 1.0*iy/Ny + paddingy + r.gPad.GetBottomMargin()
+                if pseudoy1 > 1.-r.gPad.GetTopMargin()-paddingy: continue
+                pseudoy2 = pseudoy1 + legend_height
+                if pseudoy2 > 1.-r.gPad.GetTopMargin()-paddingy: continue
+                pseudo_coords.append([pseudox1,pseudox2,pseudoy1,pseudoy2])
 
-    for ix in range(Nx):
-        pseudox1 = 1.0*ix/Nx + paddingx + r.gPad.GetLeftMargin()
-        if pseudox1 > 1.-r.gPad.GetRightMargin()-paddingx: continue
-        pseudox2 = pseudox1 + legend_width
-        if pseudox2 > 1.-r.gPad.GetRightMargin()-paddingx: continue
-        for iy in range(Ny):
-            pseudoy1 = 1.0*iy/Ny + paddingy + r.gPad.GetBottomMargin()
-            if pseudoy1 > 1.-r.gPad.GetTopMargin()-paddingy: continue
-            pseudoy2 = pseudoy1 + legend_height
-            if pseudoy2 > 1.-r.gPad.GetTopMargin()-paddingy: continue
-            pseudo_coords.append([pseudox1,pseudox2,pseudoy1,pseudoy2])
-    def is_good_legend(coords, pseudo_coord):
-        for coord in coords:
-            if bar_in_box(coord, pseudo_coord): return False
-        return True
-    def distance_from_corner(pseudo_coord):
-        x1,x2,y1,y2 = pseudo_coord 
-        dist = 0.
-        if 0.5*(y1+y2) > 0.5: dist += (1.0-y2)**2.
-        else: dist += (y1)**2.
-        if 0.5*(x1+x2) > 0.5: dist += (1.0-x2)**2.
-        else: dist += (x1)**2.
-        return dist**0.5
+        good_pseudo_coords = []
+        for pseudo_coord in pseudo_coords:
+            if not is_good_legend(coords, pseudo_coord): continue
+            good_pseudo_coords.append(pseudo_coord)
+        good_pseudo_coords = sorted(good_pseudo_coords, key=lambda x: distance_from_corner(x))
+        if len(good_pseudo_coords) > 0:
+            legend.SetX1(good_pseudo_coords[0][0])
+            legend.SetX2(good_pseudo_coords[0][1])
+            legend.SetY1(good_pseudo_coords[0][2])
+            legend.SetY2(good_pseudo_coords[0][3])
+            break
+        else:
+            print ">>> Running another smart legend iteration decreasing legend height and width"
+            legend_width *= 0.85
+            legend_height *= 0.8
+    else:
+        print ">>> Tried to reduce legend width, height {} times, but still couldn't find a good position!".format(niters)
 
-    good_pseudo_coords = []
-    for pseudo_coord in pseudo_coords:
-        if not is_good_legend(coords, pseudo_coord): continue
-        good_pseudo_coords.append(pseudo_coord)
-    good_pseudo_coords = sorted(good_pseudo_coords, key=lambda x: distance_from_corner(x))
-    if len(good_pseudo_coords) > 0:
-        legend.SetX1(good_pseudo_coords[0][0])
-        legend.SetX2(good_pseudo_coords[0][1])
-        legend.SetY1(good_pseudo_coords[0][2])
-        legend.SetY2(good_pseudo_coords[0][3])
-        # print pseudo_coord, is_good_legend(coords, pseudo_coord), distance_from_corner(pseudo_coord)
 
