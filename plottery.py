@@ -74,6 +74,7 @@ class Options(object):
             "palette_name": { "type": "String", "desc": "color palette: 'default', 'rainbow', 'susy', etc.", "default": "default", "kinds": ["2d"], },
             "show_bkg_errors": { "type": "Boolean", "desc": "show error bar for background stack", "default": False, "kinds": ["1dratio"], },
             "show_bkg_smooth": { "type": "Boolean", "desc": "show smoothed background stack", "default": False, "kinds": ["1dratio"], },
+            "bkg_sort_method": { "type": "Boolean", "desc": "how to sort background stack using integrals: 'unsorted', 'ascending', or 'descending'", "default": 'ascending', "kinds": ["1dratio"], },
 
 
             "bin_text_size": { "type": "Float", "desc": "size of text in bins (TH2::SetMarkerSize)", "default": 1.7, "kinds": ["2d"], },
@@ -258,16 +259,13 @@ def get_legend(opts):
     return legend
 
 
-def plot_hist(data=None,bgs=[],sigs=[],colors=[],legend_labels=[],sig_labels=[],options={}):
+def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],options={}):
 
     opts = Options(options, kind="1dratio")
 
     style = utils.set_style()
 
-
     c1 = r.TCanvas()
-
-    legend = get_legend(opts)
 
     has_data = data and data.InheritsFrom(r.TH1F.Class())
     do_ratio = has_data or opts["ratio_numden_indices"]
@@ -282,7 +280,6 @@ def plot_hist(data=None,bgs=[],sigs=[],colors=[],legend_labels=[],sig_labels=[],
 
     pad_main.cd()
 
-
     # sort backgrounds, but make sure all parameters have same length
     if len(colors) < len(bgs):
         print ">>> Provided only {} colors for {} backgrounds, so using defalt palette".format(len(colors),len(bgs))
@@ -292,16 +289,18 @@ def plot_hist(data=None,bgs=[],sigs=[],colors=[],legend_labels=[],sig_labels=[],
         for ibg in range(len(bgs)-len(legend_labels)):
             legend_labels.append(bgs[ibg].GetTitle())
     sort_methods = {
-            "INTEGRAL_DESCENDING": lambda x: -x[0].Integral(),
-            "INTEGRAL_ASCENDING": lambda x: x[0].Integral(), # highest integral on top of stack
-            "UNSORTED": lambda x: 1, # preserve original ordering
+            "descending": lambda x: -x[0].Integral(),
+            "ascending": lambda x: x[0].Integral(), # highest integral on top of stack
+            "unsorted": lambda x: 1, # preserve original ordering
             }
-    which_method = "INTEGRAL_ASCENDING"
+    which_method = opts["bkg_sort_method"]
     original_index_mapping = range(len(bgs))
     bgs, colors, legend_labels, original_index_mapping = zip(*sorted(zip(bgs,colors,legend_labels,original_index_mapping), key=sort_methods[which_method]))
     # map original indices of bgs to indices of sorted bgs
     original_index_mapping = { oidx: nidx for oidx,nidx in zip(original_index_mapping,range(len(bgs))) }
     map(lambda x: x.Sumw2(), bgs)
+
+    legend = get_legend(opts)
 
     if has_data:
         data.SetMarkerStyle(20)
@@ -336,6 +335,23 @@ def plot_hist(data=None,bgs=[],sigs=[],colors=[],legend_labels=[],sig_labels=[],
             legend.AddEntry(bg, legend_labels[ibg], entry_style)
         stack.Add(bg)
 
+    ymax = utils.get_stack_maximum(data,stack)
+
+    stack.SetTitle(opts["title"])
+
+    drawopt = "nostackhist"
+    if opts["do_stack"]: drawopt = "hist"
+    if opts["show_bkg_errors"]: drawopt += "e1"
+    if opts["show_bkg_smooth"]: drawopt += "C"
+    if opts["draw_points"]: drawopt += "PE"
+    stack.SetMaximum(ymax)
+    stack.Draw(drawopt)
+
+    if has_data:
+        if opts["hist_disable_xerrors"]: 
+            style.SetErrorX(0.)
+        data.Draw("samepe")
+
     if sigs:
         colors = cycle([r.kRed, r.kOrange-4, r.kTeal-5])
         for hsig,signame,color in zip(sigs, sig_labels,colors):
@@ -345,41 +361,7 @@ def plot_hist(data=None,bgs=[],sigs=[],colors=[],legend_labels=[],sig_labels=[],
             hsig.SetMarkerSize(0.8)
             hsig.SetLineColor(color)
             legend.AddEntry(hsig,signame, "LPE")
-
-
-    ymax = utils.get_stack_maximum(data,stack)
-
-    stack.SetTitle(opts["title"])
-
-    drawopt = "nostackhist"
-    if opts["do_stack"]:
-        drawopt = "hist"
-    if opts["show_bkg_errors"]:
-        drawopt += "e1"
-    if opts["show_bkg_smooth"]:
-        drawopt += "C"
-    if opts["draw_points"]:
-        drawopt += "PE"
-    stack.SetMaximum(ymax)
-    stack.Draw(drawopt)
-
-    # # print bgs[0].BinContent(
-    # stack.Dump()
-    # print dir(stack)
-    # # print stack.GetYaxis().GetXmin()
-    # # print stack.GetYaxis().GetXmax()
-
-    if has_data:
-
-        if opts["hist_disable_xerrors"]: 
-            style.SetErrorX(0.)
-
-        data.Draw("samepe")
-
-    if sigs:
-        for hsig in sigs:
             hsig.Draw("samepe")
-
 
     if opts["legend_smart"]:
         utils.smart_legend(legend, bgs, data=data, ymax=ymax)
@@ -392,7 +374,6 @@ def plot_hist(data=None,bgs=[],sigs=[],colors=[],legend_labels=[],sig_labels=[],
     draw_cms_lumi(pad_main, opts)
     handle_axes(pad_main, stack, opts)
     draw_extra_stuff(pad_main, opts)
-
 
     if do_ratio:
         pad_ratio.cd()

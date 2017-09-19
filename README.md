@@ -7,11 +7,9 @@ A ROOT plotter that makes you feel like a millionaire ("lottery", get it?)
 
 ## List of supported options
 Note that the following list was obtained _verbatim_ with
-```python
-import plottery as ply
-ply.Options().usage()
+```bash
+python -c "__import__('plottery').Options().usage()"
 ```
-
 * `bin_text_format` [String]
     format string for text in TH2 bins (default: ".1f")
 * `bin_text_format_smart` [String]
@@ -20,12 +18,16 @@ ply.Options().usage()
     size of text in bins (TH2::SetMarkerSize) (default: 1.7)
 * `bin_text_smart` [Boolean]
     change bin text color for aesthetics (default: False)
+* `bkg_sort_method` [Boolean]
+    how to sort background stack using integrals: 'unsorted', 'ascending', or 'descending' (default: "ascending")
 * `cms_label` [String]
     E.g., 'Preliminary'; default hides label (default: None)
 * `do_stack` [Boolean]
     stack histograms (default: True)
 * `draw_option_2d` [String]
     hist draw option (default: "colz")
+* `draw_points` [Boolean]
+    draw points instead of fill (default: False)
 * `extra_text` [List]
     list of strings for textboxes (default: [])
 * `extra_text_xpos` [Float]
@@ -52,6 +54,8 @@ ply.Options().usage()
     scale width of legend by this factor (default: 1)
 * `legend_scaley` [Float]
     scale height of legend by this factor (default: 1)
+* `legend_smart` [Boolean]
+    Smart alignment of legend to prevent overlaps (default: False)
 * `lumi_unit` [String]
     Unit for lumi label (default: "fb")
 * `lumi_value` [String]
