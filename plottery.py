@@ -22,6 +22,7 @@ class Options(object):
             # Legend
             "legend_coordinates": { "type": "List", "desc": "4 elements specifying TLegend constructor coordinates", "default": [0.63,0.67,0.93,0.87], "kinds": ["1dratio","graph"], },
             "legend_alignment": { "type": "Boolean", "desc": "easy alignment of TLegend. String containing two words from: bottom, top, left, right", "default": "", "kinds": ["1dratio","graph"], },
+            "legend_smart": { "type": "Boolean", "desc": "Smart alignment of legend to prevent overlaps", "default": False, "kinds": ["1dratio"], },
             "legend_border": { "type": "Boolean", "desc": "show legend border?", "default": True, "kinds": ["1dratio","graph"], },
             "legend_scalex": { "type": "Float", "desc": "scale width of legend by this factor", "default": 1, "kinds": ["1dratio","graph"], },
             "legend_scaley": { "type": "Float", "desc": "scale height of legend by this factor", "default": 1, "kinds": ["1dratio","graph"], },
@@ -346,6 +347,7 @@ def plot_hist(data=None,bgs=[],sigs=[],colors=[],legend_labels=[],sig_labels=[],
             legend.AddEntry(hsig,signame, "LPE")
 
 
+    ymax = utils.get_stack_maximum(data,stack)
 
     stack.SetTitle(opts["title"])
 
@@ -358,8 +360,8 @@ def plot_hist(data=None,bgs=[],sigs=[],colors=[],legend_labels=[],sig_labels=[],
         drawopt += "C"
     if opts["draw_points"]:
         drawopt += "PE"
+    stack.SetMaximum(ymax)
     stack.Draw(drawopt)
-    stack.SetMaximum(utils.get_stack_maximum(data,stack))
 
     # # print bgs[0].BinContent(
     # stack.Dump()
@@ -378,20 +380,11 @@ def plot_hist(data=None,bgs=[],sigs=[],colors=[],legend_labels=[],sig_labels=[],
         for hsig in sigs:
             hsig.Draw("samepe")
 
-    legend.Draw()
 
-    # allbgs = bgs[0].Clone("allbgs")
-    # allbgs.Reset()
-    # for hist in bgs:
-    #     allbgs.Add(hist)
-    # # hstack_tot = stack.GetHistogram() # enabling this screws up the percentagesinbox
-    # # print hstack_tot.GetMinimum(), hstack_tot.GetMaximum()
-    # # print list(hstack_tot)
-    # datasource = r.TLimitDataSource(sigs[0],allbgs,hdata);
-    # print datasource
-    # confidence_object = r.TLimit.ComputeLimit(datasource,500000,True)
-    # print "CLsb", confidence_object.CLsb()
-    # print "expected CLs", confidence_object.GetExpectedCLs_b()
+    if opts["legend_smart"]:
+        utils.smart_legend(legend, bgs, data=data, ymax=ymax)
+
+    legend.Draw()
 
     if opts["legend_percentageinbox"]:
         draw_percentageinbox(legend, bgs, sigs, opts, has_data=has_data)
@@ -765,6 +758,7 @@ if __name__ == "__main__":
                 # "draw_points": True,
                 "do_stack": True,
                 "legend_alignment": "bottom left",
+                # "legend_alignment": "top right",
                 # "legend_scalex": 1.3,
                 # "legend_scaley": 0.7,
                 # "legend_ncolumns": 2,
