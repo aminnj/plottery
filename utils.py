@@ -381,8 +381,8 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
     def bar_in_box((x1,y1), (bx1,bx2,by1,by2)):
         # return true if any part of bar (top of bar represented by (x1,y1))
         # overlaps with box (bx1,bx2,by1,by2)
-        does_y_overlap = by1 <= y1 <= by2
-        if does_y_overlap: return x1 > bx1
+        does_x_overlap = bx1 <= x1 <= bx2
+        if does_x_overlap: return y1 > by1
         else: return False
 
     def point_in_box((x1,y1), (bx1,bx2,by1,by2)):
@@ -407,7 +407,6 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
         else: dist += (x1)**2.
         return dist**0.5
 
-
     allbgs = bgs[0].Clone("allbgs")
     allbgs.Reset()
     for hist in bgs:
@@ -423,8 +422,8 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
     leg_y2 = legend.GetY2()
     legend_coords = (leg_x1,leg_x2,leg_y1,leg_y2)
     legend_width, legend_height = leg_x2 - leg_x1, leg_y2 - leg_y1
-    xmin = allbgs.GetBinCenter(1)
-    xmax = allbgs.GetBinCenter(allbgs.GetNbinsX())
+    xmin = allbgs.GetBinLowEdge(1)
+    xmax = allbgs.GetBinLowEdge(allbgs.GetNbinsX()) + allbgs.GetBinWidth(allbgs.GetNbinsX())
     coords = []
 
     # get coordinates of objects we don't want to overlap
@@ -433,8 +432,9 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
         yval = allbgs.GetBinContent(ibin)
         # if we have data, and it's higher than bgs, then use that value
         if data and data.GetBinContent(ibin) > yval:
-                xval = data.GetBinCenter(ibin)
-                yval = data.GetBinContent(ibin)
+            xval = data.GetBinCenter(ibin)
+            yval = data.GetBinContent(ibin)
+            yval += 1.0*data.GetBinError(ibin)
         yfrac = (yval - ymin) / (ymax - ymin)
         xfrac = (xval - xmin) / (xmax - xmin) 
         # convert from 0..1 inside plotting pane, to pad coordinates (stupid margins)
@@ -448,7 +448,7 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
     # t.SetTextAlign(22)
     # t.SetTextFont(42)
     # t.SetTextColor(r.kRed)
-    # t.SetTextSize(0.03)
+    # t.SetTextSize(0.05)
     # for coord in coords:
     #     t.DrawLatexNDC(coord[0],coord[1],"x")
 

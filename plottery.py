@@ -335,8 +335,6 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
             legend.AddEntry(bg, legend_labels[ibg], entry_style)
         stack.Add(bg)
 
-    ymax = utils.get_stack_maximum(data,stack)
-
     stack.SetTitle(opts["title"])
 
     drawopt = "nostackhist"
@@ -344,8 +342,9 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     if opts["show_bkg_errors"]: drawopt += "e1"
     if opts["show_bkg_smooth"]: drawopt += "C"
     if opts["draw_points"]: drawopt += "PE"
-    stack.SetMaximum(ymax)
+    stack.SetMaximum(utils.get_stack_maximum(data,stack))
     stack.Draw(drawopt)
+    ymax = stack.GetHistogram().GetMaximum()
 
     if has_data:
         if opts["hist_disable_xerrors"]: 
@@ -724,15 +723,20 @@ if __name__ == "__main__":
     hdata.FillRandom("landau",int(8*scalefact_all))
     hdata.FillRandom("expo",int(1*scalefact_all)) # signal injection
 
-    hsig = r.TH1F("hsig","hsig",nbins,0,5)
-    hsig.FillRandom("expo",int(scalefact_mc*1*scalefact_all))
-    hsig.Scale(1./scalefact_mc)
+    hsig1 = r.TH1F("hsig1","hsig1",nbins,0,5)
+    hsig1.FillRandom("expo",int(scalefact_mc*1*scalefact_all))
+    hsig1.Scale(1./scalefact_mc)
+
+    hsig2 = r.TH1F("hsig2","hsig2",nbins,0,5)
+    hsig2.FillRandom("gaus",int(scalefact_mc*1*scalefact_all))
+    hsig2.Scale(1./scalefact_mc)
+
 
     plot_hist(
             data=hdata,
             bgs=[h1,h2,h3],
-            sigs = [hsig],
-            sig_labels = ["SUSY"],
+            sigs = [hsig1, hsig2],
+            sig_labels = ["SUSY", "Black hole"],
             colors = [r.kRed-2, r.kAzure+2, r.kGreen-2],
             legend_labels = ["first", "second", "third"],
             options = {
@@ -741,8 +745,8 @@ if __name__ == "__main__":
                 # "legend_alignment": "bottom left",
                 "legend_smart": True,
                 # "legend_alignment": "top right",
-                # "legend_scalex": 1.3,
-                # "legend_scaley": 0.7,
+                "legend_scalex": 0.7,
+                "legend_scaley": 1.5,
                 # "legend_ncolumns": 2,
                 "legend_opacity": 0.5,
                 "extra_text": ["#slash{E}_{T} > 50 GeV","N_{jets} #geq 2","H_{T} > 300 GeV"],
@@ -758,7 +762,7 @@ if __name__ == "__main__":
                 "legend_percentageinbox": True,
                 "cms_label": "Preliminary",
                 "lumi_value": "-inf",
-                "output_ic": False,
+                "output_ic": True,
                 "us_flag": True,
                 # "output_jsroot": True,
                 }
