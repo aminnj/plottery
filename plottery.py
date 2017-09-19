@@ -434,7 +434,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
             for ibin in range(1,ratio.GetNbinsX()+1):
                 err = ratio.GetBinError(ibin)
                 val = ratio.GetBinContent(ibin)
-                chi2 += (val-1.)**2./err
+                chi2 += (val-1.)**2./err**2.
             prob = r.TMath.Prob(chi2,ratio.GetNbinsX()-1)
             t = r.TLatex()
             t.SetTextAlign(22)
@@ -701,7 +701,7 @@ if __name__ == "__main__":
 
     pass
 
-    scalefact_all = 100
+    scalefact_all = 500
     scalefact_mc = 7
     
     nbins = 30
@@ -736,9 +736,9 @@ if __name__ == "__main__":
             data=hdata,
             bgs=[h1,h2,h3],
             sigs = [hsig1, hsig2],
-            sig_labels = ["SUSY", "Black hole"],
+            sig_labels = ["SUSY", "Magic"],
             colors = [r.kRed-2, r.kAzure+2, r.kGreen-2],
-            legend_labels = ["first", "second", "third"],
+            legend_labels = ["First", "Second", "Third"],
             options = {
                 # "draw_points": True,
                 "do_stack": True,

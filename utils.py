@@ -368,7 +368,7 @@ def draw_smart_2d_bin_labels(hist,opts):
             t.DrawLatex(xcent,ycent,fmt.format(val,err))
             labels.append(t)
 
-def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niters=5):
+def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niters=7):
     """
     Given a TLegend, backgrounds, and optionally data,
     find a location where the TLegend doesn't overlap these objects
@@ -484,8 +484,8 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
             break
         else:
             print ">>> Running another smart legend iteration decreasing legend height and width"
-            legend_width *= 0.85
-            legend_height *= 0.8
+            legend_width *= 0.9
+            legend_height *= 0.9
     else:
         print ">>> Tried to reduce legend width, height {} times, but still couldn't find a good position!".format(niters)
 
