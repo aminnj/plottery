@@ -52,7 +52,7 @@ class Options(object):
 
             # Ratio
             "ratio_name": { "type": "String", "desc": "name of ratio pad", "default": "Data/MC", "kinds": ["1dratio"], },
-            "ratio_range": { "type": "List", "desc": "pair for min and max y-value for ratio", "default": [0.,2.], "kinds": ["1dratio"], },
+            "ratio_range": { "type": "List", "desc": "pair for min and max y-value for ratio; default auto re-sizes to 3 sigma range", "default": [-1,-1], "kinds": ["1dratio"], },
             "ratio_horizontal_lines": { "type": "List", "desc": "list of y-values to draw horizontal line", "default": [1.], "kinds": ["1dratio"], },
             "ratio_chi2prob": { "type": "Boolean", "desc": "show chi2 probability for ratio", "default": False, "kinds": ["1dratio"], },
             "ratio_pull": { "type": "Boolean", "desc": "show pulls instead of ratios in ratio pad", "default": False, "kinds": ["1dratio"], },
@@ -267,7 +267,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
 
     c1 = r.TCanvas()
 
-    has_data = data and data.InheritsFrom(r.TH1F.Class())
+    has_data = data and data.InheritsFrom(r.TH1.Class())
     do_ratio = has_data or opts["ratio_numden_indices"]
     if do_ratio:
         pad_main = r.TPad("pad1","pad1",0.0,0.18,1.0,1.0)
@@ -352,7 +352,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     ymax = utils.get_stack_maximum(data,stack)
     stack.SetMaximum(ymax)
     stack.Draw(drawopt)
-    ymax = 1.05*ymax
+    ymax = 1.05*ymax if opts["do_stack"] else 1.00*ymax
 
     if has_data:
         if opts["hist_disable_xerrors"]: 
@@ -361,6 +361,8 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
 
     if sigs:
         colors = cycle([r.kRed, r.kOrange-4, r.kTeal-5])
+        if len(sig_labels) < len(sigs):
+            sig_labels = [sig.GetTitle() for sig in sigs]
         for hsig,signame,color in zip(sigs, sig_labels,colors):
             hsig.SetMarkerStyle(1) # 2 has errors
             hsig.SetMarkerColor(color)
@@ -368,7 +370,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
             hsig.SetMarkerSize(0.8)
             hsig.SetLineColor(color)
             legend.AddEntry(hsig,signame, "LPE")
-            hsig.Draw("samepe")
+            hsig.Draw("samehiste")
 
 
 
@@ -461,6 +463,20 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     return c1
 
 def do_style_ratio(ratio, opts):
+    if opts["ratio_range"][1] <= opts["ratio_range"][0]:
+        vals = list(ratio)[1:-1]
+        errs = [ratio.GetBinError(ibin) for ibin in range(ratio.GetNbinsX()+1)][1:-1]
+        htmp = r.TH1D("htmp","htmp",150,min(vals),max(vals))
+        for val,err in zip(vals,errs):
+            if err < 1.e-6: continue
+            htmp.Fill(val,1./err)
+        mean, sigma = htmp.GetMean(), htmp.GetRMS()
+        # if high <= low, compute range automatically (+-2 sigma interval)
+        # mean = 1.0*sum(vals)/len(vals)
+        # sigma = (sum([(v-mean)**2. for v in vals])/(len(vals)-1))**0.5
+        low = max(mean-3*sigma,min(vals))-sigma/1e3
+        high = min(mean+3*sigma,max(vals))+sigma/1e3
+        opts["ratio_range"] = [low,high]
     ratio.SetMarkerStyle(20)
     ratio.SetMarkerSize(0.8)
     ratio.SetLineWidth(2)
@@ -740,55 +756,24 @@ if __name__ == "__main__":
 
     hsig2 = r.TH1F("hsig2","hsig2",nbins,0,5)
     hsig2.FillRandom("gaus",int(scalefact_mc*1*scalefact_all))
-    hsig2.Scale(1./scalefact_mc)
+    hsig2.Scale(1./2)
 
-
-    plot_hist(
-            data=hdata,
-            bgs=[h1,h2,h3],
-            sigs = [hsig1, hsig2],
-            sig_labels = ["SUSY", "Magic"],
-            colors = [r.kRed-2, r.kAzure+2, r.kGreen-2],
-            legend_labels = ["First", "Second", "Third"],
-            options = {
-                # "draw_points": True,
-                "do_stack": True,
-                # "legend_alignment": "bottom left",
-                "legend_smart": True,
-                # "legend_alignment": "top right",
-                "legend_scalex": 0.7,
-                "legend_scaley": 1.5,
-                # "legend_ncolumns": 2,
-                "legend_opacity": 0.5,
-                "extra_text": ["#slash{E}_{T} > 50 GeV","N_{jets} #geq 2","H_{T} > 300 GeV"],
-                "extra_text_xpos": 0.35,
-                # "yaxis_log": True,
-                # "show_bkg_smooth": True,
-                "yaxis_moreloglabels": True,
-                "ratio_range":[0.8,1.2],
-                # "ratio_numden_indices": [0,1],
-                # "hist_disable_xerrors": True,
-                # "ratio_chi2prob": True,
-                "output_name": "test1.pdf",
-                "legend_percentageinbox": True,
-                "cms_label": "Preliminary",
-                "lumi_value": "-inf",
-                "output_ic": True,
-                "us_flag": True,
-                # "output_jsroot": True,
-                }
-            )
 
     # plot_hist(
-    #         data=None,
-    #         bgs=[h1,h2],
-    #         colors = [r.kRed-2, r.kAzure+2],
-    #         legend_labels = ["first", "second", "third"],
+    #         data=hdata,
+    #         bgs=[h1,h2,h3],
+    #         sigs = [hsig1, hsig2],
+    #         sig_labels = ["SUSY", "Magic"],
+    #         colors = [r.kRed-2, r.kAzure+2, r.kGreen-2],
+    #         legend_labels = ["First", "Second", "Third"],
     #         options = {
-    #             "do_stack": False,
-    #             "legend_alignment": "bottom left",
-    #             "legend_scalex": 0.9,
-    #             "legend_scaley": 0.6,
+    #             # "draw_points": True,
+    #             "do_stack": True,
+    #             # "legend_alignment": "bottom left",
+    #             "legend_smart": True,
+    #             # "legend_alignment": "top right",
+    #             "legend_scalex": 0.7,
+    #             "legend_scaley": 1.5,
     #             # "legend_ncolumns": 2,
     #             "legend_opacity": 0.5,
     #             "extra_text": ["#slash{E}_{T} > 50 GeV","N_{jets} #geq 2","H_{T} > 300 GeV"],
@@ -798,6 +783,38 @@ if __name__ == "__main__":
     #             "yaxis_moreloglabels": True,
     #             "ratio_range":[0.8,1.2],
     #             # "ratio_numden_indices": [0,1],
+    #             "hist_disable_xerrors": True,
+    #             # "ratio_chi2prob": True,
+    #             "output_name": "test1.pdf",
+    #             "legend_percentageinbox": True,
+    #             "cms_label": "Preliminary",
+    #             "lumi_value": "-inf",
+    #             "output_ic": True,
+    #             "us_flag": True,
+    #             # "output_jsroot": True,
+    #             }
+    #         )
+
+    # plot_hist(
+    #         data=None,
+    #         bgs=[h1,h3],
+    #         colors = [r.kRed-2, r.kAzure+2],
+    #         legend_labels = ["first", "second", "third"],
+    #         options = {
+    #             "do_stack": False,
+    #             # "legend_alignment": "bottom left",
+    #             "legend_smart": True,
+    #             "legend_scalex": 0.9,
+    #             "legend_scaley": 0.6,
+    #             # "legend_ncolumns": 2,
+    #             "legend_opacity": 0.5,
+    #             "draw_points": False,
+    #             "extra_text": ["#slash{E}_{T} > 50 GeV","N_{jets} #geq 2","H_{T} > 300 GeV"],
+    #             "extra_text_xpos": 0.35,
+    #             # "yaxis_log": True,
+    #             # "show_bkg_smooth": True,
+    #             "yaxis_moreloglabels": True,
+    #             "ratio_numden_indices": [0,1],
     #             # "hist_disable_xerrors": True,
     #             # "ratio_chi2prob": True,
     #             "output_name": "test1.pdf",
@@ -809,4 +826,14 @@ if __name__ == "__main__":
     #             # "output_jsroot": True,
     #             }
     #         )
+
+    plot_hist(
+            bgs=[h1,h2,h3],
+            sigs=[hsig1],
+            options = {
+                "legend_smart": True,
+                "output_name": "test1.pdf",
+                "output_ic": True,
+                }
+            )
 
