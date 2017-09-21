@@ -1,5 +1,6 @@
 import ROOT as r
 from math import log
+import random
 
 
 def set_style():
@@ -378,28 +379,36 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
     Repeat this `niters` times before giving up.
     """
 
-    def bar_in_box((x1,y1), (bx1,bx2,by1,by2)):
+
+    debug = False # draw bounding boxes, etc
+
+    def bar_in_box((x1,y1), (bx1,bx2,by1,by2), exclude_if_below=True):
         # return true if any part of bar (top of bar represented by (x1,y1))
         # overlaps with box (bx1,bx2,by1,by2)
+        # if !exclude_if_below, then we allow the box if it's above OR below the point
         does_x_overlap = bx1 <= x1 <= bx2
-        if does_x_overlap: return y1 > by1
+        if does_x_overlap:
+            if exclude_if_below:
+                return y1 > by1
+            else:
+                return by1 <= y1 <= by2
         else: return False
 
     def point_in_box((x1,y1), (bx1,bx2,by1,by2)):
         # return true if point is in box
         return (by1 <= y1 <= by2) or (bx1 <= x1 <= bx2)
 
-    def is_good_legend(coords, pseudo_coord):
-        # return true if this pseudolegend (given by 4-tuple pseudo_coord)
+    def is_good_legend(coords, pseudo_legend, exclude_if_below=True):
+        # return true if this pseudolegend (given by 4-tuple pseudo_legend)
         # is a good legend (i.e., doesn't overlap with list of pairs in coords
         for coord in coords:
-            if bar_in_box(coord, pseudo_coord): return False
+            if bar_in_box(coord, pseudo_legend, exclude_if_below=exclude_if_below): return False
         return True
 
-    def distance_from_corner(pseudo_coord):
+    def distance_from_corner(pseudo_legend):
         # return euclidean distance of corner of pseudo legend cloest to plot
         # pane corner (note, this is rough)
-        x1,x2,y1,y2 = pseudo_coord 
+        x1,x2,y1,y2 = pseudo_legend 
         dist = 0.
         if 0.5*(y1+y2) > 0.5: dist += (1.0-y2)**2.
         else: dist += (y1)**2.
@@ -415,6 +424,7 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
     if not ymax:
         ymax = allbgs.GetMaximum()
 
+
     # get coordinates of legend corners
     leg_x1 = legend.GetX1()
     leg_x2 = legend.GetX2()
@@ -425,8 +435,10 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
     xmin = allbgs.GetBinLowEdge(1)
     xmax = allbgs.GetBinLowEdge(allbgs.GetNbinsX()) + allbgs.GetBinWidth(allbgs.GetNbinsX())
     coords = []
+    extra_coords = []
 
-    # get coordinates of objects we don't want to overlap
+    # coords veto a legend if they are within the box, or
+    # if the box is below the coord
     for ibin in range(1,allbgs.GetNbinsX()+1):
         xval = allbgs.GetBinCenter(ibin)
         yval = allbgs.GetBinContent(ibin)
@@ -443,14 +455,30 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
         coord = (xcoord, ycoord)
         coords.append(coord)
 
-    # # draw x's to debug
-    # t = r.TLatex()
-    # t.SetTextAlign(22)
-    # t.SetTextFont(42)
-    # t.SetTextColor(r.kRed)
-    # t.SetTextSize(0.05)
-    # for coord in coords:
-    #     t.DrawLatexNDC(coord[0],coord[1],"x")
+    # NOTE: bugged. can't seem to get NDC for TLatex, only user
+    # # extra_coords to veto a legend if they are within the box
+    # for elem in r.gPad.GetListOfPrimitives():
+    #     if not elem.InheritsFrom(r.TLatex.Class()): continue
+    #     x1 = elem.GetX()
+    #     x2 = x1 + elem.GetTextSize()*len(elem.GetTitle())
+    #     y1 = elem.GetY()
+    #     extra_coords.append([x1,y1])
+    #     extra_coords.append([x2,y1])
+
+    if debug:
+        # draw x's to debug
+        t = r.TLatex()
+        t.SetTextAlign(22)
+        t.SetTextFont(42)
+        t.SetTextColor(r.kRed)
+        t.SetTextSize(0.05)
+        for coord in coords:
+            t.DrawLatexNDC(coord[0],coord[1],"x")
+        for coord in extra_coords:
+            t.DrawLatexNDC(coord[0],coord[1],"x")
+
+        line = r.TLine()
+        line.SetLineColor(r.kRed)
 
     # generate list of legend coordinate candidates, preserving original width, height
     # move around the original legend by Nx increments in x and Ny in y
@@ -458,7 +486,7 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
     paddingx = 0.03
     paddingy = 0.03
     for iiter in range(niters):
-        pseudo_coords = []
+        pseudo_legends = []
         for ix in range(Nx):
             pseudox1 = 1.0*ix/Nx + paddingx + r.gPad.GetLeftMargin()
             if pseudox1 > 1.-r.gPad.GetRightMargin()-paddingx: continue
@@ -469,18 +497,30 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
                 if pseudoy1 > 1.-r.gPad.GetTopMargin()-paddingy: continue
                 pseudoy2 = pseudoy1 + legend_height
                 if pseudoy2 > 1.-r.gPad.GetTopMargin()-paddingy: continue
-                pseudo_coords.append([pseudox1,pseudox2,pseudoy1,pseudoy2])
+                pseudo_legends.append([pseudox1,pseudox2,pseudoy1,pseudoy2])
 
-        good_pseudo_coords = []
-        for pseudo_coord in pseudo_coords:
-            if not is_good_legend(coords, pseudo_coord): continue
-            good_pseudo_coords.append(pseudo_coord)
-        good_pseudo_coords = sorted(good_pseudo_coords, key=lambda x: distance_from_corner(x))
-        if len(good_pseudo_coords) > 0:
-            legend.SetX1(good_pseudo_coords[0][0])
-            legend.SetX2(good_pseudo_coords[0][1])
-            legend.SetY1(good_pseudo_coords[0][2])
-            legend.SetY2(good_pseudo_coords[0][3])
+        good_pseudo_legends = []
+        for pseudo_legend in pseudo_legends:
+            if not is_good_legend(coords, pseudo_legend): continue
+            if not is_good_legend(extra_coords, pseudo_legend, exclude_if_below=False): continue
+            good_pseudo_legends.append(pseudo_legend)
+
+            if debug:
+                xr = random.random()*0.05 - 0.025
+                yr = random.random()*0.05 - 0.025
+                x1, x2, y1, y2 = pseudo_legend
+                line.SetLineColor(int(50*random.random()))
+                line.DrawLineNDC(x1+xr,y1+yr,x2+xr,y1+yr)
+                line.DrawLineNDC(x2+xr,y1+yr,x2+xr,y2+yr)
+                line.DrawLineNDC(x2+xr,y2+yr,x1+xr,y2+yr)
+                line.DrawLineNDC(x1+xr,y2+yr,x1+xr,y1+yr)
+
+        good_pseudo_legends = sorted(good_pseudo_legends, key=lambda x: distance_from_corner(x))
+        if len(good_pseudo_legends) > 0:
+            legend.SetX1(good_pseudo_legends[0][0])
+            legend.SetX2(good_pseudo_legends[0][1])
+            legend.SetY1(good_pseudo_legends[0][2])
+            legend.SetY2(good_pseudo_legends[0][3])
             break
         else:
             print ">>> Running another smart legend iteration decreasing legend height and width"

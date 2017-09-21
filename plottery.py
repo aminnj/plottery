@@ -342,9 +342,17 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     if opts["show_bkg_errors"]: drawopt += "e1"
     if opts["show_bkg_smooth"]: drawopt += "C"
     if opts["draw_points"]: drawopt += "PE"
-    stack.SetMaximum(utils.get_stack_maximum(data,stack))
+
+
+    # When using  stack.GetHistogram().GetMaximum() to get ymax, this screws
+    # up CMS Lumi drawing, but we can't just assume that get_stack_maximum
+    # returns the actual maximum (even though that's what we set it to!) because
+    # thstack multiplies the max by 1.05??? Odd
+    # So here, we take into account that scaling for the rest of this function
+    ymax = utils.get_stack_maximum(data,stack)
+    stack.SetMaximum(ymax)
     stack.Draw(drawopt)
-    ymax = stack.GetHistogram().GetMaximum()
+    ymax = 1.05*ymax
 
     if has_data:
         if opts["hist_disable_xerrors"]: 
@@ -362,17 +370,17 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
             legend.AddEntry(hsig,signame, "LPE")
             hsig.Draw("samepe")
 
-    if opts["legend_smart"]:
-        utils.smart_legend(legend, bgs, data=data, ymax=ymax)
 
-    legend.Draw()
-
-    if opts["legend_percentageinbox"]:
-        draw_percentageinbox(legend, bgs, sigs, opts, has_data=has_data)
 
     draw_cms_lumi(pad_main, opts)
     handle_axes(pad_main, stack, opts)
     draw_extra_stuff(pad_main, opts)
+
+    if opts["legend_smart"]:
+        utils.smart_legend(legend, bgs, data=data, ymax=ymax)
+    legend.Draw()
+    if opts["legend_percentageinbox"]:
+        draw_percentageinbox(legend, bgs, sigs, opts, has_data=has_data)
 
     if do_ratio:
         pad_ratio.cd()
@@ -674,6 +682,7 @@ def draw_cms_lumi(c1, opts, _persist=[]):
     _persist.append(t)
 
 def draw_extra_stuff(c1, opts):
+
     if opts["us_flag"]:
         utils.draw_flag(c1,*opts["us_flag_coordinates"])
 
@@ -685,6 +694,7 @@ def draw_extra_stuff(c1, opts):
         t.SetTextSize(0.04)
         for itext, text in enumerate(opts["extra_text"]):
             t.DrawLatexNDC(opts["extra_text_xpos"],0.87-itext*0.05,text)
+
 
 
 def save(c1, opts):
