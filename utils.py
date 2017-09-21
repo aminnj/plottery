@@ -369,7 +369,7 @@ def draw_smart_2d_bin_labels(hist,opts):
             t.DrawLatex(xcent,ycent,fmt.format(val,err))
             labels.append(t)
 
-def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niters=7):
+def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niters=7, opts={}):
     """
     Given a TLegend, backgrounds, and optionally data,
     find a location where the TLegend doesn't overlap these objects
@@ -418,8 +418,12 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
 
     allbgs = bgs[0].Clone("allbgs")
     allbgs.Reset()
-    for hist in bgs:
-        allbgs.Add(hist)
+    if opts["do_stack"]:
+        for hist in bgs:
+            allbgs.Add(hist)
+    else:
+        for ibin in range(1,allbgs.GetNbinsX()+1):
+            allbgs.SetBinContent(ibin, max(hist.GetBinContent(ibin) for hist in bgs))
 
     if not ymax:
         ymax = allbgs.GetMaximum()
@@ -455,12 +459,14 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
         coord = (xcoord, ycoord)
         coords.append(coord)
 
-    # NOTE: bugged. can't seem to get NDC for TLatex, only user
+    # # NOTE: bugged. can't seem to get NDC for TLatex, only user
     # # extra_coords to veto a legend if they are within the box
     # for elem in r.gPad.GetListOfPrimitives():
     #     if not elem.InheritsFrom(r.TLatex.Class()): continue
     #     x1 = elem.GetX()
-    #     x2 = x1 + elem.GetTextSize()*len(elem.GetTitle())
+    #     elem.SetNDC()
+    #     print elem.GetXsize()
+    #     x2 = x1 + elem.GetXsize()
     #     y1 = elem.GetY()
     #     extra_coords.append([x1,y1])
     #     extra_coords.append([x2,y1])

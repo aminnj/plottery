@@ -377,7 +377,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     draw_extra_stuff(pad_main, opts)
 
     if opts["legend_smart"]:
-        utils.smart_legend(legend, bgs, data=data, ymax=ymax)
+        utils.smart_legend(legend, bgs, data=data, ymax=ymax, opts=opts)
     legend.Draw()
     if opts["legend_percentageinbox"]:
         draw_percentageinbox(legend, bgs, sigs, opts, has_data=has_data)
@@ -688,12 +688,13 @@ def draw_extra_stuff(c1, opts):
 
     if opts["extra_text"]:
         t = r.TLatex()
+        t.SetNDC()
         t.SetTextAlign(12)
         t.SetTextFont(42)
         t.SetTextColor(r.kBlack)
         t.SetTextSize(0.04)
         for itext, text in enumerate(opts["extra_text"]):
-            t.DrawLatexNDC(opts["extra_text_xpos"],0.87-itext*0.05,text)
+            t.DrawLatex(opts["extra_text_xpos"],0.87-itext*0.05,text)
 
 
 
