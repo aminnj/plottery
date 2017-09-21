@@ -447,7 +447,7 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
         xval = allbgs.GetBinCenter(ibin)
         yval = allbgs.GetBinContent(ibin)
         # if we have data, and it's higher than bgs, then use that value
-        if data and data.GetBinContent(ibin) > yval:
+        if data and data.GetBinContent(ibin)+data.GetBinError(ibin) > yval:
             xval = data.GetBinCenter(ibin)
             yval = data.GetBinContent(ibin)
             yval += 1.0*data.GetBinError(ibin)
