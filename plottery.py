@@ -340,11 +340,13 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     stack.SetTitle(opts["title"])
 
     drawopt = "nostackhist"
+    extradrawopt = ""
     if opts["do_stack"]: drawopt = "hist"
     if opts["show_bkg_errors"]: drawopt += "e1"
     if opts["show_bkg_smooth"]: drawopt += "C"
     if opts["draw_points"]: drawopt += "PE"
 
+    if opts["hist_disable_xerrors"]: extradrawopt += "X0"
 
     # When using  stack.GetHistogram().GetMaximum() to get ymax, this screws
     # up CMS Lumi drawing, but we can't just assume that get_stack_maximum
@@ -357,6 +359,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     ymax = 1.05*ymax if opts["do_stack"] else 1.00*ymax
 
     if syst:
+        # Turn relative bin errors from syst into drawable histogram
         bgs_syst = syst.Clone("bgs_syst")
         bgs_syst.Reset()
         for hist in bgs:
@@ -370,16 +373,23 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
         bgs_syst.SetMarkerColorAlpha(r.kWhite,0.)
         bgs_syst.SetFillColorAlpha(r.kGray+2,0.5)
         bgs_syst.SetFillStyle(1001)
-        # https://root.cern.ch/root/roottalk/roottalk02/5281.html
-        setex1 = r.TExec("setex1","gStyle->SetErrorX(0.5)")
-        setex1.Draw()
+
+        # Compute the systematics band in the ratio, to be drawn later in the ratio
+        all_bgs = syst.Clone("all_bgs")
+        all_bgs.Reset()
+        for hist in bgs:
+            all_bgs.Add(hist)
+        ratio_syst = bgs_syst.Clone("ratio_syst")
+        ratio_syst.Sumw2()
+        ratio_syst.Divide(all_bgs)
+        ratio_syst.SetFillColorAlpha(r.kGray+2,0.5)
+        ratio_syst.SetFillStyle(1001)
+
+        # Draw the main band in the main pad
         bgs_syst.Draw("E2 SAME")
 
     if has_data:
-        if opts["hist_disable_xerrors"]: 
-            setex2 = r.TExec("setex2","gStyle->SetErrorX(0.0)")
-            setex2.Draw()
-        data.Draw("samepe")
+        data.Draw("samepe"+extradrawopt)
 
     if sigs:
         map(utils.move_in_overflows, sigs)
@@ -449,29 +459,13 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
             opts["ratio_ndivisions"] = 208
             opts["ratio_horizontal_lines"] = [-1.,0.,1.]
 
+        ratio.Draw("axis")
 
         if syst:
-            all_bgs = syst.Clone("all_bgs")
-            all_bgs.Reset()
-            for hist in bgs:
-                all_bgs.Add(hist)
-            ratio_syst = bgs_syst.Clone("ratio_syst")
-            ratio_syst.Sumw2()
-            ratio_syst.Divide(all_bgs)
-            ratio_syst.SetMarkerSize(0)
-            ratio_syst.SetMarkerColorAlpha(r.kWhite,0.)
-            ratio_syst.SetFillColorAlpha(r.kGray+2,0.5)
-            ratio_syst.SetFillStyle(1001)
-            print list(ratio_syst)[1:-1]
-            print [ratio_syst.GetBinError(ibin) for ibin in range(ratio_syst.GetNbinsX())][1:-1]
-            # ratio_syst.SetTitle("")
-            # ratio_syst.GetXaxis().SetTitle("")
-            # ratio_syst.GetYaxis().SetTitle("")
-            # ratio_syst
-            ratio_syst.Draw("E2 same")
+            ratio_syst.Draw("E2 SAME")
 
         do_style_ratio(ratio, opts)
-        ratio.Draw("PE")
+        ratio.Draw("same PE"+extradrawopt)
 
 
         ratio_horizontal_lines = opts["ratio_horizontal_lines"]
@@ -486,9 +480,11 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
             c1.cd()
             chi2 = 0.
             for ibin in range(1,ratio.GetNbinsX()+1):
-                err = ratio.GetBinError(ibin)
+                err2 = ratio.GetBinError(ibin)**2.
+                if syst:
+                    err2 += ratio_syst.GetBinError(ibin)**2.
                 val = ratio.GetBinContent(ibin)
-                chi2 += (val-1.)**2./err**2.
+                chi2 += (val-1.)**2./err2
             prob = r.TMath.Prob(chi2,ratio.GetNbinsX()-1)
             t = r.TLatex()
             t.SetTextAlign(22)
@@ -804,7 +800,8 @@ if __name__ == "__main__":
     hsig2.Scale(1./2)
 
     hsyst = r.TH1F("hsyst","hsyst",nbins,0,5)
-    hsyst.FillRandom("gaus",1000)
+    hsyst.FillRandom("gaus",100)
+    hsyst.FillRandom("expo",400)
 
     plot_hist(
             data=hdata,
