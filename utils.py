@@ -144,7 +144,7 @@ def set_palette(style, palette):
         style.SetNumberContours(255)
 
 def get_default_colors():
-    return [r.kSpring-6, r.kAzure+7, r.kRed-6, r.kOrange-2, r.kCyan-7, r.kMagenta-7, r.kTeal+6, r.kGray+2]
+    return [r.kSpring-6, r.kAzure+7, r.kRed-7, r.kOrange-2, r.kCyan-7, r.kMagenta-7, r.kTeal+6, r.kGray+2]
 
 
 def hsv_to_rgb(h, s, v, scale=255.):
@@ -320,6 +320,35 @@ def draw_flag(c1, cx, cy, size, _persist=[]):
     _persist.append(lab)
 
     c1.cd();
+
+def move_in_overflows(h):
+    """
+    Takes a histogram and moves the under and overflow bins
+    into the first and last visible bins, respectively
+    Errors are combined in quadrature
+    """
+    nbins = h.GetNbinsX()
+    v_under = h[0]
+    v_first = h[1]
+    e_under = h.GetBinError(0)
+    e_first = h.GetBinError(1)
+    v_over = h[nbins+1]
+    v_last = h[nbins]
+    e_over = h.GetBinError(nbins+1)
+    e_last = h.GetBinError(nbins)
+
+    # Reset overflows to 0
+    h.SetBinContent(0, 0)
+    h.SetBinContent(nbins+1, 0)
+    h.SetBinError(0, 0)
+    h.SetBinError(nbins+1, 0)
+
+    # Put them into first and last bins
+    h.SetBinContent(1, v_first+v_under)
+    h.SetBinContent(nbins, v_last+v_over)
+    h.SetBinError(1, (e_first**2.+e_under**2.)**0.5)
+    h.SetBinError(nbins, (e_last**2.+e_over**2.)**0.5)
+
 
 def draw_smart_2d_bin_labels(hist,opts):
     """

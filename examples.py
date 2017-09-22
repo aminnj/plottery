@@ -8,9 +8,9 @@ import plottery as ply
 2 to show three TGraph ROC curves 
 3 to show a TH2D with smart bin labels...fancy
 """
-which_tests = [0]
-# which_tests = [1, 2, 3]
-which_tests = [4]
+# which_tests = [0]
+which_tests = [1, 2, 3]
+# which_tests = [1]
 # which_tests = [2]
 
 for which_test in which_tests:

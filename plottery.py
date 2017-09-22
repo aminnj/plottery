@@ -22,26 +22,26 @@ class Options(object):
             # Legend
             "legend_coordinates": { "type": "List", "desc": "4 elements specifying TLegend constructor coordinates", "default": [0.63,0.67,0.93,0.87], "kinds": ["1dratio","graph"], },
             "legend_alignment": { "type": "Boolean", "desc": "easy alignment of TLegend. String containing two words from: bottom, top, left, right", "default": "", "kinds": ["1dratio","graph"], },
-            "legend_smart": { "type": "Boolean", "desc": "Smart alignment of legend to prevent overlaps", "default": False, "kinds": ["1dratio"], },
+            "legend_smart": { "type": "Boolean", "desc": "Smart alignment of legend to prevent overlaps", "default": True, "kinds": ["1dratio"], },
             "legend_border": { "type": "Boolean", "desc": "show legend border?", "default": True, "kinds": ["1dratio","graph"], },
             "legend_scalex": { "type": "Float", "desc": "scale width of legend by this factor", "default": 1, "kinds": ["1dratio","graph"], },
             "legend_scaley": { "type": "Float", "desc": "scale height of legend by this factor", "default": 1, "kinds": ["1dratio","graph"], },
-            "legend_opacity": { "type": "Float", "desc": "from 0 to 1 representing the opacity of the TLegend white background", "default": 0, "kinds": ["1dratio","graph"], },
+            "legend_opacity": { "type": "Float", "desc": "from 0 to 1 representing the opacity of the TLegend white background", "default": 0.5, "kinds": ["1dratio","graph"], },
             "legend_ncolumns": { "type": "Int", "desc": "number of columns in the legend", "default": 1, "kinds": ["1dratio","graph"], },
-            "legend_percentageinbox": { "type": "Boolean", "desc": "show relative process contributions as %age in the legend thumbnails", "default": False, "kinds": ["1dratio"], },
+            "legend_percentageinbox": { "type": "Boolean", "desc": "show relative process contributions as %age in the legend thumbnails", "default": True, "kinds": ["1dratio"], },
 
             # Axes
             "xaxis_log": { "type": "Boolean", "desc": "log scale x-axis", "default": False, "kinds": ["1dratio","graph","2d"], },
             "yaxis_log": { "type": "Boolean", "desc": "log scale y-axis", "default": False, "kinds": ["1dratio","graph","2d"], },
             "zaxis_log": { "type": "Boolean", "desc": "log scale z-axis", "default": False, "kinds": ["2d"], },
 
-            "xaxis_label": { "type": "String", "desc": "label for x axis", "default": "x title", "kinds": ["1dratio","graph","2d"], },
+            "xaxis_label": { "type": "String", "desc": "label for x axis", "default": "", "kinds": ["1dratio","graph","2d"], },
             "yaxis_label": { "type": "String", "desc": "label for y axis", "default": "Events", "kinds": ["1dratio","graph","2d"], },
             "zaxis_label": { "type": "String", "desc": "label for z axis", "default": "", "kinds": ["2d"], },
 
-            "xaxis_moreloglabels": { "type": "Boolean", "desc": "show denser labels with logscale for x axis", "default": False, "kinds": ["1dratio","graph","2d"], },
-            "yaxis_moreloglabels": { "type": "Boolean", "desc": "show denser labels with logscale for y axis", "default": False, "kinds": ["1dratio","graph","2d"], },
-            "zaxis_moreloglabels": { "type": "Boolean", "desc": "show denser labels with logscale for z axis", "default": False, "kinds": ["1dratio","graph","2d"], },
+            "xaxis_moreloglabels": { "type": "Boolean", "desc": "show denser labels with logscale for x axis", "default": True, "kinds": ["1dratio","graph","2d"], },
+            "yaxis_moreloglabels": { "type": "Boolean", "desc": "show denser labels with logscale for y axis", "default": True, "kinds": ["1dratio","graph","2d"], },
+            "zaxis_moreloglabels": { "type": "Boolean", "desc": "show denser labels with logscale for z axis", "default": True, "kinds": ["1dratio","graph","2d"], },
             "xaxis_noexponents": { "type": "Boolean", "desc": "don't show exponents in logscale labels for x axis", "default": False, "kinds": ["1dratio","graph","2d"], },
             "yaxis_noexponents": { "type": "Boolean", "desc": "don't show exponents in logscale labels for y axis", "default": False, "kinds": ["1dratio","graph","2d"], },
             "zaxis_noexponents": { "type": "Boolean", "desc": "don't show exponents in logscale labels for z axis", "default": False, "kinds": ["1dratio","graph","2d"], },
@@ -84,7 +84,7 @@ class Options(object):
 
             "hist_line_none": { "type": "Boolean", "desc": "No lines for histograms, only fill", "default": False, "kinds": ["1dratio"], },
             "hist_line_black": { "type": "Boolean", "desc": "Black lines for histograms", "default": False, "kinds": ["1dratio"], },
-            "hist_disable_xerrors": { "type": "Boolean", "desc": "Disable the x-error bars on data for 1D hists", "default": False, "kinds": ["1dratio"], },
+            "hist_disable_xerrors": { "type": "Boolean", "desc": "Disable the x-error bars on data for 1D hists", "default": True, "kinds": ["1dratio"], },
 
             "extra_text": { "type": "List", "desc": "list of strings for textboxes", "default": [], "kinds": [ "1dratio"], },
             "extra_text_xpos": { "type": "Float", "desc": "NDC x position (0 to 1) for extra text", "default": 0.2, "kinds": [ "1dratio"], },
@@ -259,7 +259,7 @@ def get_legend(opts):
     return legend
 
 
-def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],options={}):
+def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],syst=None,options={}):
 
     opts = Options(options, kind="1dratio")
 
@@ -299,10 +299,12 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     # map original indices of bgs to indices of sorted bgs
     original_index_mapping = { oidx: nidx for oidx,nidx in zip(original_index_mapping,range(len(bgs))) }
     map(lambda x: x.Sumw2(), bgs)
+    map(utils.move_in_overflows, bgs)
 
     legend = get_legend(opts)
 
     if has_data:
+        utils.move_in_overflows(data)
         data.SetMarkerStyle(20)
         data.SetMarkerColor(r.kBlack)
         data.SetLineWidth(2)
@@ -354,12 +356,33 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     stack.Draw(drawopt)
     ymax = 1.05*ymax if opts["do_stack"] else 1.00*ymax
 
+    if syst:
+        bgs_syst = syst.Clone("bgs_syst")
+        bgs_syst.Reset()
+        for hist in bgs:
+            bgs_syst.Add(hist)
+        for ibin in range(1,bgs_syst.GetNbinsX()+1):
+            # Set the bin content of the systematic band to the total of the backgrounds
+            # and the error to the actual value of the systematic histogram
+            bgs_syst.SetBinContent(ibin, bgs_syst.GetBinContent(ibin))
+            bgs_syst.SetBinError(ibin, syst.GetBinContent(ibin))
+        bgs_syst.SetMarkerSize(0)
+        bgs_syst.SetMarkerColorAlpha(r.kWhite,0.)
+        bgs_syst.SetFillColorAlpha(r.kGray+2,0.5)
+        bgs_syst.SetFillStyle(1001)
+        # https://root.cern.ch/root/roottalk/roottalk02/5281.html
+        setex1 = r.TExec("setex1","gStyle->SetErrorX(0.5)")
+        setex1.Draw()
+        bgs_syst.Draw("E2 SAME")
+
     if has_data:
         if opts["hist_disable_xerrors"]: 
-            style.SetErrorX(0.)
+            setex2 = r.TExec("setex2","gStyle->SetErrorX(0.0)")
+            setex2.Draw()
         data.Draw("samepe")
 
     if sigs:
+        map(utils.move_in_overflows, sigs)
         colors = cycle([r.kRed, r.kOrange-4, r.kTeal-5])
         if len(sig_labels) < len(sigs):
             sig_labels = [sig.GetTitle() for sig in sigs]
@@ -427,8 +450,29 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
             opts["ratio_horizontal_lines"] = [-1.,0.,1.]
 
 
+        if syst:
+            all_bgs = syst.Clone("all_bgs")
+            all_bgs.Reset()
+            for hist in bgs:
+                all_bgs.Add(hist)
+            ratio_syst = bgs_syst.Clone("ratio_syst")
+            ratio_syst.Sumw2()
+            ratio_syst.Divide(all_bgs)
+            ratio_syst.SetMarkerSize(0)
+            ratio_syst.SetMarkerColorAlpha(r.kWhite,0.)
+            ratio_syst.SetFillColorAlpha(r.kGray+2,0.5)
+            ratio_syst.SetFillStyle(1001)
+            print list(ratio_syst)[1:-1]
+            print [ratio_syst.GetBinError(ibin) for ibin in range(ratio_syst.GetNbinsX())][1:-1]
+            # ratio_syst.SetTitle("")
+            # ratio_syst.GetXaxis().SetTitle("")
+            # ratio_syst.GetYaxis().SetTitle("")
+            # ratio_syst
+            ratio_syst.Draw("E2 same")
+
         do_style_ratio(ratio, opts)
         ratio.Draw("PE")
+
 
         ratio_horizontal_lines = opts["ratio_horizontal_lines"]
         line = r.TLine()
@@ -507,6 +551,7 @@ def draw_percentageinbox(legend, bgs, sigs, opts, has_data=False):
             if icoord == 0: continue
             icoord -= 1
         bg = all_entries[icoord]
+        if icoord >= len(bgs): continue # don't do signals
         percentage = int(100.0*bg.Integral()/total_integral)
         color = r.gROOT.GetColor(bg.GetFillColor())
         red = color.GetRed()
@@ -729,7 +774,7 @@ if __name__ == "__main__":
     pass
 
     scalefact_all = 500
-    scalefact_mc = 7
+    scalefact_mc = 15
     
     nbins = 30
     h1 = r.TH1F("h1","h1",nbins,0,5)
@@ -758,42 +803,45 @@ if __name__ == "__main__":
     hsig2.FillRandom("gaus",int(scalefact_mc*1*scalefact_all))
     hsig2.Scale(1./2)
 
+    hsyst = r.TH1F("hsyst","hsyst",nbins,0,5)
+    hsyst.FillRandom("gaus",1000)
 
-    # plot_hist(
-    #         data=hdata,
-    #         bgs=[h1,h2,h3],
-    #         sigs = [hsig1, hsig2],
-    #         sig_labels = ["SUSY", "Magic"],
-    #         colors = [r.kRed-2, r.kAzure+2, r.kGreen-2],
-    #         legend_labels = ["First", "Second", "Third"],
-    #         options = {
-    #             # "draw_points": True,
-    #             "do_stack": True,
-    #             # "legend_alignment": "bottom left",
-    #             "legend_smart": True,
-    #             # "legend_alignment": "top right",
-    #             "legend_scalex": 0.7,
-    #             "legend_scaley": 1.5,
-    #             # "legend_ncolumns": 2,
-    #             "legend_opacity": 0.5,
-    #             "extra_text": ["#slash{E}_{T} > 50 GeV","N_{jets} #geq 2","H_{T} > 300 GeV"],
-    #             "extra_text_xpos": 0.35,
-    #             # "yaxis_log": True,
-    #             # "show_bkg_smooth": True,
-    #             "yaxis_moreloglabels": True,
-    #             "ratio_range":[0.8,1.2],
-    #             # "ratio_numden_indices": [0,1],
-    #             "hist_disable_xerrors": True,
-    #             # "ratio_chi2prob": True,
-    #             "output_name": "test1.pdf",
-    #             "legend_percentageinbox": True,
-    #             "cms_label": "Preliminary",
-    #             "lumi_value": "-inf",
-    #             "output_ic": True,
-    #             "us_flag": True,
-    #             # "output_jsroot": True,
-    #             }
-    #         )
+    plot_hist(
+            data=hdata,
+            bgs=[h1,h2,h3],
+            sigs = [hsig1, hsig2],
+            syst = hsyst,
+            sig_labels = ["SUSY", "Magic"],
+            colors = [r.kRed-2, r.kAzure+2, r.kGreen-2],
+            legend_labels = ["First", "Second", "Third"],
+            options = {
+                # "draw_points": True,
+                "do_stack": True,
+                # "legend_alignment": "bottom left",
+                "legend_smart": True,
+                # "legend_alignment": "top right",
+                "legend_scalex": 0.7,
+                "legend_scaley": 1.5,
+                # "legend_ncolumns": 2,
+                "legend_opacity": 0.5,
+                "extra_text": ["#slash{E}_{T} > 50 GeV","N_{jets} #geq 2","H_{T} > 300 GeV"],
+                "extra_text_xpos": 0.35,
+                # "yaxis_log": True,
+                # "show_bkg_smooth": True,
+                "yaxis_moreloglabels": True,
+                "ratio_range":[0.8,1.2],
+                # "ratio_numden_indices": [0,1],
+                "hist_disable_xerrors": True,
+                "ratio_chi2prob": True,
+                "output_name": "test1.pdf",
+                "legend_percentageinbox": True,
+                "cms_label": "Preliminary",
+                "lumi_value": "-inf",
+                "output_ic": True,
+                "us_flag": True,
+                # "output_jsroot": True,
+                }
+            )
 
     # plot_hist(
     #         data=None,
@@ -827,13 +875,13 @@ if __name__ == "__main__":
     #             }
     #         )
 
-    plot_hist(
-            bgs=[h1,h2,h3],
-            sigs=[hsig1],
-            options = {
-                "legend_smart": True,
-                "output_name": "test1.pdf",
-                "output_ic": True,
-                }
-            )
+    # plot_hist(
+    #         bgs=[h1,h2,h3],
+    #         sigs=[hsig1],
+    #         options = {
+    #             "legend_smart": True,
+    #             "output_name": "test1.pdf",
+    #             "output_ic": True,
+    #             }
+    #         )
 
