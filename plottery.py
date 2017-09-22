@@ -56,6 +56,7 @@ class Options(object):
             "ratio_horizontal_lines": { "type": "List", "desc": "list of y-values to draw horizontal line", "default": [1.], "kinds": ["1dratio"], },
             "ratio_chi2prob": { "type": "Boolean", "desc": "show chi2 probability for ratio", "default": False, "kinds": ["1dratio"], },
             "ratio_pull": { "type": "Boolean", "desc": "show pulls instead of ratios in ratio pad", "default": False, "kinds": ["1dratio"], },
+            "ratio_pull_numbers": { "type": "Boolean", "desc": "show numbers for pulls, and mean/sigma", "default": True, "kinds": ["1dratio"], },
             "ratio_ndivisions": { "type": "Int", "desc": "SetNdivisions integer for ratio", "default": 505, "kinds": ["1dratio"], },
             "ratio_numden_indices": { "type": "List", "desc": "Pair of numerator and denominator histogram indices (from `bgs`) for ratio", "default": None, "kinds": ["1dratio"], },
 
@@ -371,7 +372,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
             bgs_syst.SetBinError(ibin, syst.GetBinContent(ibin))
         bgs_syst.SetMarkerSize(0)
         bgs_syst.SetMarkerColorAlpha(r.kWhite,0.)
-        bgs_syst.SetFillColorAlpha(r.kGray+2,0.5)
+        bgs_syst.SetFillColorAlpha(r.kGray+2,0.4)
         bgs_syst.SetFillStyle(1001)
 
         # Compute the systematics band in the ratio, to be drawn later in the ratio
@@ -382,7 +383,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
         ratio_syst = bgs_syst.Clone("ratio_syst")
         ratio_syst.Sumw2()
         ratio_syst.Divide(all_bgs)
-        ratio_syst.SetFillColorAlpha(r.kGray+2,0.5)
+        ratio_syst.SetFillColorAlpha(r.kGray+2,0.4)
         ratio_syst.SetFillStyle(1001)
 
         # Draw the main band in the main pad
@@ -442,11 +443,14 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
         if opts["ratio_pull"]:
             for ibin in range(1,ratio.GetNbinsX()+1):
                 ratio_val = ratio.GetBinContent(ibin)
-                ratio_err = ratio.GetBinError(ibin)
                 numer_val = numer.GetBinContent(ibin)
                 numer_err = numer.GetBinError(ibin)
                 denom_val = denom.GetBinContent(ibin)
                 denom_err = denom.GetBinError(ibin)
+                if syst: 
+                    # when doing a pull, the denominator is usually MC
+                    # which is carries the syst error we need to add in 
+                    denom_err = (denom_err**2. + bgs_syst.GetBinError(ibin)**2.)**0.5
                 # gaussian pull
                 pull = (ratio_val-1.)/((numer_err**2.+denom_err**2.)**0.5)
                 if numer_val > 1e-6:
@@ -455,44 +459,65 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
                 ratio.SetBinContent(ibin,pull)
                 ratio.SetBinError(ibin,0.)
             opts["ratio_range"] = [-3.0,3.0]
-            opts["ratio_horizontal_line"] = 0.
             opts["ratio_ndivisions"] = 208
             opts["ratio_horizontal_lines"] = [-1.,0.,1.]
 
         ratio.Draw("axis")
 
-        if syst:
+        if syst and not opts["ratio_pull"]:
             ratio_syst.Draw("E2 SAME")
+
+        if opts["ratio_pull"] and opts["ratio_pull_numbers"]:
+            t = r.TLatex()
+            t.SetTextAlign(22)
+            t.SetTextFont(42)
+            t.SetTextColor(r.kBlack)
+            t.SetTextSize(0.1)
+            for ibin in range(1,ratio.GetNbinsX()+1):
+                yval = ratio.GetBinContent(ibin)
+                xval = ratio.GetBinCenter(ibin)
+                if yval > 2.35: yval -= 0.6
+                else: yval += 0.6
+                if abs(yval) > 2.: t.SetTextColor(r.kRed+1)
+                elif abs(yval) > 1.: t.SetTextColor(r.kOrange+1)
+                else: t.SetTextColor(r.kBlack)
+                if abs(yval) > 3.: continue
+                t.DrawLatex(xval,yval,"{:.1f}".format(yval))
 
         do_style_ratio(ratio, opts)
         ratio.Draw("same PE"+extradrawopt)
 
 
-        ratio_horizontal_lines = opts["ratio_horizontal_lines"]
         line = r.TLine()
         line.SetLineColor(r.kGray+2);
         line.SetLineWidth(1);
-        for yval in ratio_horizontal_lines:
+        for yval in opts["ratio_horizontal_lines"]:
             line.DrawLine(ratio.GetXaxis().GetBinLowEdge(1),yval,ratio.GetXaxis().GetBinUpEdge(ratio.GetNbinsX()),yval)
 
-        if opts["ratio_chi2prob"]:
+        if opts["ratio_chi2prob"] or opts["ratio_pull_numbers"]:
             oldpad = r.gPad
             c1.cd()
-            chi2 = 0.
-            for ibin in range(1,ratio.GetNbinsX()+1):
-                err2 = ratio.GetBinError(ibin)**2.
-                if syst:
-                    err2 += ratio_syst.GetBinError(ibin)**2.
-                val = ratio.GetBinContent(ibin)
-                chi2 += (val-1.)**2./err2
-            prob = r.TMath.Prob(chi2,ratio.GetNbinsX()-1)
             t = r.TLatex()
             t.SetTextAlign(22)
             t.SetTextFont(42)
             t.SetTextColor(r.kBlack)
             t.SetTextSize(0.03)
             yloc = pad_ratio.GetAbsHNDC()
-            t.DrawLatexNDC(0.5,yloc+0.01,"P(#chi^{{2}}/ndof) = {:.2f}".format(prob))
+            to_show = ""
+            if opts["ratio_chi2prob"]:
+                chi2 = 0.
+                for ibin in range(1,ratio.GetNbinsX()+1):
+                    err2 = ratio.GetBinError(ibin)**2.
+                    if syst: 
+                        err2 += ratio_syst.GetBinError(ibin)**2.
+                    val = ratio.GetBinContent(ibin)
+                    chi2 += (val-1.)**2./err2
+                prob = r.TMath.Prob(chi2,ratio.GetNbinsX()-1)
+                to_show = "P(#chi^{{2}}/ndof) = {:.2f}".format(prob)
+            if opts["ratio_pull"] and opts["ratio_pull_numbers"]:
+                mean, sigma = utils.get_mean_sigma_1d_yvals(ratio)
+                to_show = "Pulls: #mu = {:.2f}, #sigma = {:.2f}".format(mean,sigma)
+            t.DrawLatexNDC(0.5,yloc+0.01,to_show)
             oldpad.cd()
 
         pad_main.cd()
@@ -502,18 +527,11 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
 
     return c1
 
+
 def do_style_ratio(ratio, opts):
     if opts["ratio_range"][1] <= opts["ratio_range"][0]:
-        vals = list(ratio)[1:-1]
-        errs = [ratio.GetBinError(ibin) for ibin in range(ratio.GetNbinsX()+1)][1:-1]
-        htmp = r.TH1D("htmp","htmp",150,min(vals),max(vals))
-        for val,err in zip(vals,errs):
-            if err < 1.e-6: continue
-            htmp.Fill(val,1./err)
-        mean, sigma = htmp.GetMean(), htmp.GetRMS()
-        # if high <= low, compute range automatically (+-2 sigma interval)
-        # mean = 1.0*sum(vals)/len(vals)
-        # sigma = (sum([(v-mean)**2. for v in vals])/(len(vals)-1))**0.5
+        # if high <= low, compute range automatically (+-3 sigma interval)
+        mean, sigma = utils.get_mean_sigma_1d_yvals(ratio)
         low = max(mean-3*sigma,min(vals))-sigma/1e3
         high = min(mean+3*sigma,max(vals))+sigma/1e3
         opts["ratio_range"] = [low,high]
@@ -797,7 +815,7 @@ if __name__ == "__main__":
 
     hsig2 = r.TH1F("hsig2","hsig2",nbins,0,5)
     hsig2.FillRandom("gaus",int(scalefact_mc*1*scalefact_all))
-    hsig2.Scale(1./2)
+    hsig2.Scale(1./scalefact_mc)
 
     hsyst = r.TH1F("hsyst","hsyst",nbins,0,5)
     hsyst.FillRandom("gaus",100)
@@ -825,8 +843,8 @@ if __name__ == "__main__":
                 "extra_text_xpos": 0.35,
                 # "yaxis_log": True,
                 # "show_bkg_smooth": True,
-                "yaxis_moreloglabels": True,
                 "ratio_range":[0.8,1.2],
+                # "ratio_pull": True,
                 # "ratio_numden_indices": [0,1],
                 "hist_disable_xerrors": True,
                 "ratio_chi2prob": True,
@@ -835,7 +853,7 @@ if __name__ == "__main__":
                 "cms_label": "Preliminary",
                 "lumi_value": "-inf",
                 "output_ic": True,
-                "us_flag": True,
+                # "us_flag": True,
                 # "output_jsroot": True,
                 }
             )

@@ -321,6 +321,20 @@ def draw_flag(c1, cx, cy, size, _persist=[]):
 
     c1.cd();
 
+def get_mean_sigma_1d_yvals(hist):
+    """
+    Return mean and sigma of yvals of a 1D hist (by basically "projecting" onto y-axis)
+    """
+    vals = list(hist)[1:-1]
+    errs = [hist.GetBinError(ibin) for ibin in range(hist.GetNbinsX()+1)][1:-1]
+    htmp = r.TH1D("htmp","htmp",150,min(vals),max(vals))
+    if sum(errs) < 1e-6: errs = [1.+err for err in errs]
+    for val,err in zip(vals,errs):
+        if err < 1.e-6: continue
+        htmp.Fill(val,1./err)
+    mean, sigma = htmp.GetMean(), htmp.GetRMS()
+    return mean, sigma
+
 def move_in_overflows(h):
     """
     Takes a histogram and moves the under and overflow bins
