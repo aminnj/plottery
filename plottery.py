@@ -476,13 +476,14 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
             for ibin in range(1,ratio.GetNbinsX()+1):
                 yval = ratio.GetBinContent(ibin)
                 xval = ratio.GetBinCenter(ibin)
-                if yval > 2.35: yval -= 0.6
-                else: yval += 0.6
-                if abs(yval) > 2.: t.SetTextColor(r.kRed+1)
-                elif abs(yval) > 1.: t.SetTextColor(r.kOrange+1)
+                yvaldraw = yval
+                if yvaldraw > 2.35: yvaldraw -= 0.6
+                else: yvaldraw += 0.6
+                if abs(yvaldraw) > 2.: t.SetTextColor(r.kRed+1)
+                elif abs(yvaldraw) > 1.: t.SetTextColor(r.kOrange+1)
                 else: t.SetTextColor(r.kBlack)
                 if abs(yval) > 3.: continue
-                t.DrawLatex(xval,yval,"{:.1f}".format(yval))
+                t.DrawLatex(xval,yvaldraw,"{:.1f}".format(yval))
 
         do_style_ratio(ratio, opts)
         ratio.Draw("same PE"+extradrawopt)
