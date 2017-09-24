@@ -1,9 +1,32 @@
 # plottery
-A ROOT plotter that makes you feel like a millionaire ("lottery", get it?)
+## Introduction
+A ROOT plotter that makes you feel like a millionaire ("lottery", get it?). Some interesting features include
+* Percentages in marker boxes in the legend
+* Automatic legend placement to prevent overlaps
+* A US flag stamp
+* Chi2 probability calculation for ratio pads
+* Automatic range for ratio pad
+* Pull distribution markers have numbers representing n-sigma, and have mean/standard deviation shown
+
+...and it supports
+* TH1
+* TGraph(AsymmErrors)
+* TH2
+
+A list of options is shown below, and there is a "self-documenting" class containing all of them in the source.
 
 ## Instructions
 * You need ROOT
 * Modify and execute `examples.py` to see some examples
+
+## Design philosophies
+* Generally, plotting scripts grow endlessly to encompass use-cases that crop up over the years.
+In principle, plottery should comfortably handle 95% of use-cases to prevent the size from blowing up.
+* Plottery is only a plotter. It is not a histogram-adder, a re-binner, a TTree looper, etc.
+Features like that should be written around plottery, not within it.
+* Options should be functionally grouped (e.g., options applying to legend should start with `legend_`, options
+applying to the x-axis should start with `xaxis_`). See the list of supported options below for an idea. Also, this
+makes it so printing out options alphabetically retains a logical grouping.
 
 ## List of supported options
 Note that the following list was obtained _verbatim_ with
