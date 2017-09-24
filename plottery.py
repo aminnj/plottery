@@ -639,110 +639,6 @@ def plot_hist_2d(hist,options={}):
     draw_extra_stuff(c1, opts)
     save(c1, opts)
 
-def plot_hist_2d_projections(hist,options={}):
-
-    c1 = r.TCanvas("c1","c1",800,800)
-
-    style = utils.set_style_2d()
-    # style.SetPadRightMargin(0.)
-    # style.SetPadTopMargin(0.)
-
-    # pad_main = r.TPad("pad1","pad1",0.20,0.20,1.0,1.0)
-    # pad_bottom = r.TPad("pad2","pad2",0.0, 0.0, 1.0, 0.20)
-    # pad_left = r.TPad("pad2","pad2",0.0, 0.0, 0.20, 1)
-
-    pad_main = r.TPad("pad1","pad1",0,0,0.8,0.8)
-    pad_top = r.TPad("pad2","pad2",0,0.8,0.8,1)
-    pad_right = r.TPad("pad3","pad3",0.8,0,1,0.8)
-    pad_corner = r.TPad("pad4","pad4",0.8,0.8,1.,1.)
-
-    pad_main.SetRightMargin(0.01)
-    pad_top.SetRightMargin(0.)
-    pad_top.SetBottomMargin(0.)
-    pad_main.SetTopMargin(0.01)
-    pad_right.SetTopMargin(0.)
-    pad_right.SetLeftMargin(0.)
-
-    pad_top.Draw()
-    pad_right.Draw()
-    pad_main.Draw()
-    pad_corner.Draw()
-
-
-    pad_top.cd()
-    projx = hist.ProjectionX()
-    print projx
-
-    projx.SetMarkerStyle(20)
-    projx.SetMarkerSize(0.8)
-    projx.SetLineColor(r.kBlack)
-    projx.SetLineWidth(2)
-    projx.SetTitle("")
-    projx.GetYaxis().SetTitleOffset(0.25)
-    projx.GetYaxis().SetTitleSize(0.2)
-    projx.GetYaxis().SetNdivisions(405)
-    projx.GetYaxis().SetLabelSize(0.13)
-    projx.GetXaxis().SetLabelSize(0.)
-    projx.GetXaxis().SetTickSize(0.06)
-
-    projx.Draw("LPE")
-
-    pad_right.cd()
-    projy = hist.ProjectionY()
-    print projy
-    projy.SetFillStyle(0)
-
-    projy.SetMarkerStyle(20)
-    projy.SetMarkerSize(0.8)
-    projy.SetLineWidth(2)
-    projy.SetTitle("")
-    projy.GetYaxis().SetTitleOffset(0.25)
-    projy.GetYaxis().SetTitleSize(0.2)
-    projy.GetYaxis().SetNdivisions(505)
-    projy.GetYaxis().SetLabelSize(0.13)
-    projy.GetXaxis().SetLabelSize(0.)
-    projy.GetXaxis().SetTickSize(0.06)
-
-    projy.Draw("hbarLPE")
-
-    pad_main.cd()
-
-
-    opts = Options(options, kind="2d")
-
-
-    utils.set_palette(style, opts["palette_name"])
-
-
-    hist.Draw(opts["draw_option_2d"])
-
-    # pad_corner.cd()
-    # hist.Draw(opts["draw_option_2d"])
-    # r.gPad.Update()
-    # palette = hist.GetListOfFunctions().FindObject("palette")
-    # print list(hist.GetListOfFunctions())
-    # # palette.SetX1NDC(0.0);
-    # # palette.SetY1NDC(0.0);
-    # # palette.SetX2NDC(1.0);
-    # # palette.SetY2NDC(1.0);
-    # palette.Draw()
-    # r.gPad.Modified();
-    # r.gPad.Update();
-    # pad_main.cd()
-
-    hist.SetTitle(opts["title"])
-
-    hist.SetMarkerSize(opts["bin_text_size"])
-    style.SetPaintTextFormat(opts["bin_text_format"])
-
-    if opts["bin_text_smart"]:
-        utils.draw_smart_2d_bin_labels(hist, opts)
-
-    draw_cms_lumi(pad_main, opts)
-    handle_axes(pad_main, hist, opts)
-    draw_extra_stuff(pad_main, opts)
-    save(c1, opts)
-
 def draw_cms_lumi(c1, opts, _persist=[]):
     t = r.TLatex()
     t.SetTextAlign(11) # align bottom left corner of text
@@ -781,10 +677,15 @@ def draw_extra_stuff(c1, opts):
             t.DrawLatex(opts["extra_text_xpos"],0.87-itext*0.05,text)
 
 
-
 def save(c1, opts):
 
     fname = opts["output_name"]
+    dirname = os.path.dirname(fname)
+    if dirname and not os.path.isdir(dirname):
+        print ">>> Plot should go inside {}/, but it doesn't exist.".format(dirname)
+        print ">>> Instead of crashing, I'll do you a solid and make it".format(dirname)
+        os.system("mkdir -p {}".format(dirname))
+
     print ">>> Saving {}".format(fname)
     c1.SaveAs(fname)
     if opts["output_ic"]:
