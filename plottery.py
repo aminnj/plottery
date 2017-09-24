@@ -88,7 +88,7 @@ class Options(object):
             "hist_disable_xerrors": { "type": "Boolean", "desc": "Disable the x-error bars on data for 1D hists", "default": True, "kinds": ["1dratio"], },
 
             "extra_text": { "type": "List", "desc": "list of strings for textboxes", "default": [], "kinds": [ "1dratio"], },
-            "extra_text_xpos": { "type": "Float", "desc": "NDC x position (0 to 1) for extra text", "default": 0.2, "kinds": [ "1dratio"], },
+            "extra_text_xpos": { "type": "Float", "desc": "NDC x position (0 to 1) for extra text", "default": 0.3, "kinds": [ "1dratio"], },
 
             # Fun
             "us_flag": { "type": "Boolean", "desc": "show the US flag in the corner", "default": False, "kinds": ["1dratio","graph","2d"], },
@@ -226,10 +226,12 @@ def plot_graph(valpairs,colors=[],legend_labels=[],draw_styles=[],options={}):
 def get_legend(opts):
     x1,y1,x2,y2 = opts["legend_coordinates"]
     legend_alignment = opts["legend_alignment"]
-    if "bottom" in legend_alignment: y1, y2 = 0.18, 0.38
-    if "top" in legend_alignment: y1, y2 = 0.67, 0.87
-    if "left" in legend_alignment: x1, x2 = 0.18, 0.48
-    if "right" in legend_alignment: x1, x2 = 0.63, 0.93
+    height = 0.2
+    width = 0.3
+    if "bottom" in legend_alignment: y1, y2 = 0.18, 0.18+height
+    if "top" in legend_alignment: y1, y2 = 0.67, 0.67+height
+    if "left" in legend_alignment: x1, x2 = 0.18, 0.18+width
+    if "right" in legend_alignment: x1, x2 = 0.63, 0.63+width
 
     # scale width and height of legend keeping the sides
     # closest to the plot edges the same (so we expand/contact the legend inwards)
@@ -479,8 +481,8 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
                 yvaldraw = yval
                 if yvaldraw > 2.35: yvaldraw -= 0.6
                 else: yvaldraw += 0.6
-                if abs(yvaldraw) > 2.: t.SetTextColor(r.kRed+1)
-                elif abs(yvaldraw) > 1.: t.SetTextColor(r.kOrange+1)
+                if abs(yval) > 2.: t.SetTextColor(r.kRed+1)
+                elif abs(yval) > 1.: t.SetTextColor(r.kOrange+1)
                 else: t.SetTextColor(r.kBlack)
                 if abs(yval) > 3.: continue
                 t.DrawLatex(xval,yvaldraw,"{:.1f}".format(yval))
@@ -792,8 +794,6 @@ def save(c1, opts):
 
 if __name__ == "__main__":
 
-    pass
-
     scalefact_all = 500
     scalefact_mc = 15
     
@@ -825,8 +825,8 @@ if __name__ == "__main__":
     hsig2.Scale(1./scalefact_mc)
 
     hsyst = r.TH1F("hsyst","hsyst",nbins,0,5)
-    hsyst.FillRandom("gaus",100)
-    hsyst.FillRandom("expo",400)
+    hsyst.FillRandom("gaus",int(scalefact_all/5.*1))
+    hsyst.FillRandom("expo",int(scalefact_all/5.*4))
 
     plot_hist(
             data=hdata,
@@ -837,22 +837,13 @@ if __name__ == "__main__":
             colors = [r.kRed-2, r.kAzure+2, r.kGreen-2],
             legend_labels = ["First", "Second", "Third"],
             options = {
-                # "draw_points": True,
                 "do_stack": True,
-                # "legend_alignment": "bottom left",
-                "legend_smart": True,
-                # "legend_alignment": "top right",
                 "legend_scalex": 0.7,
                 "legend_scaley": 1.5,
-                "legend_ncolumns": 1,
-                "legend_opacity": 0.5,
                 "extra_text": ["#slash{E}_{T} > 50 GeV","N_{jets} #geq 2","H_{T} > 300 GeV"],
-                "extra_text_xpos": 0.35,
                 # "yaxis_log": True,
-                # "show_bkg_smooth": True,
                 "ratio_range":[0.8,1.2],
                 "ratio_pull": True,
-                # "ratio_numden_indices": [0,1],
                 "hist_disable_xerrors": True,
                 "ratio_chi2prob": True,
                 "output_name": "test1.pdf",
@@ -860,7 +851,7 @@ if __name__ == "__main__":
                 "cms_label": "Preliminary",
                 "lumi_value": "-inf",
                 "output_ic": True,
-                # "us_flag": True,
+                "us_flag": True,
                 # "output_jsroot": True,
                 }
             )
