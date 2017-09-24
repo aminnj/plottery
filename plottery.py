@@ -560,19 +560,25 @@ def draw_percentageinbox(legend, bgs, sigs, opts, has_data=False):
     total_integral = sum(bg.Integral() for bg in bgs)
     # we want the number to be centered, without the % symbol, so nudge the percentage text right a bit
     nudge_right = info["box_width"]*0.15
+    if info["draw_vertical"]:
+        t.SetTextAngle(90)
+    else:
+        t.SetTextAngle(0)
     for icoord, (xndc, yndc) in enumerate(info["coords"]):
         # if we have data, skip it and restart numbering from 0
         if has_data:
             if icoord == 0: continue
             icoord -= 1
-        bg = all_entries[icoord]
         if icoord >= len(bgs): continue # don't do signals
+        bg = all_entries[icoord]
         percentage = int(100.0*bg.Integral()/total_integral)
         color = r.gROOT.GetColor(bg.GetFillColor())
         red = color.GetRed()
         green = color.GetGreen()
         blue = color.GetBlue()
-        darkness = utils.compute_darkness(red, green, blue)
+        # same as utils.compute_darkness (https://root.cern.ch/doc/master/TColor_8h_source.html#l00027) 
+        # without the color.GetAlpha(), which is there because effective luminance is higher if there's transparency
+        darkness = 1.-color.GetGrayscale()/color.GetAlpha() 
         if darkness < 0.5:
             t.SetTextColor(r.kBlack)
         else: 
@@ -838,14 +844,14 @@ if __name__ == "__main__":
                 # "legend_alignment": "top right",
                 "legend_scalex": 0.7,
                 "legend_scaley": 1.5,
-                # "legend_ncolumns": 2,
+                "legend_ncolumns": 1,
                 "legend_opacity": 0.5,
                 "extra_text": ["#slash{E}_{T} > 50 GeV","N_{jets} #geq 2","H_{T} > 300 GeV"],
                 "extra_text_xpos": 0.35,
                 # "yaxis_log": True,
                 # "show_bkg_smooth": True,
                 "ratio_range":[0.8,1.2],
-                # "ratio_pull": True,
+                "ratio_pull": True,
                 # "ratio_numden_indices": [0,1],
                 "hist_disable_xerrors": True,
                 "ratio_chi2prob": True,
@@ -859,45 +865,5 @@ if __name__ == "__main__":
                 }
             )
 
-    # plot_hist(
-    #         data=None,
-    #         bgs=[h1,h3],
-    #         colors = [r.kRed-2, r.kAzure+2],
-    #         legend_labels = ["first", "second", "third"],
-    #         options = {
-    #             "do_stack": False,
-    #             # "legend_alignment": "bottom left",
-    #             "legend_smart": True,
-    #             "legend_scalex": 0.9,
-    #             "legend_scaley": 0.6,
-    #             # "legend_ncolumns": 2,
-    #             "legend_opacity": 0.5,
-    #             "draw_points": False,
-    #             "extra_text": ["#slash{E}_{T} > 50 GeV","N_{jets} #geq 2","H_{T} > 300 GeV"],
-    #             "extra_text_xpos": 0.35,
-    #             # "yaxis_log": True,
-    #             # "show_bkg_smooth": True,
-    #             "yaxis_moreloglabels": True,
-    #             "ratio_numden_indices": [0,1],
-    #             # "hist_disable_xerrors": True,
-    #             # "ratio_chi2prob": True,
-    #             "output_name": "test1.pdf",
-    #             "legend_percentageinbox": True,
-    #             "cms_label": "Preliminary",
-    #             "lumi_value": "-inf",
-    #             "output_ic": True,
-    #             "us_flag": True,
-    #             # "output_jsroot": True,
-    #             }
-    #         )
 
-    # plot_hist(
-    #         bgs=[h1,h2,h3],
-    #         sigs=[hsig1],
-    #         options = {
-    #             "legend_smart": True,
-    #             "output_name": "test1.pdf",
-    #             "output_ic": True,
-    #             }
-    #         )
 
