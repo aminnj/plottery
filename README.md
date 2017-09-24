@@ -31,9 +31,9 @@ python -c "__import__('plottery').Options().usage()"
 * `extra_text` [List]
     list of strings for textboxes (default: [])
 * `extra_text_xpos` [Float]
-    NDC x position (0 to 1) for extra text (default: 0.2)
+    NDC x position (0 to 1) for extra text (default: 0.3)
 * `hist_disable_xerrors` [Boolean]
-    Disable the x-error bars on data for 1D hists (default: False)
+    Disable the x-error bars on data for 1D hists (default: True)
 * `hist_line_black` [Boolean]
     Black lines for histograms (default: False)
 * `hist_line_none` [Boolean]
@@ -47,15 +47,15 @@ python -c "__import__('plottery').Options().usage()"
 * `legend_ncolumns` [Int]
     number of columns in the legend (default: 1)
 * `legend_opacity` [Float]
-    from 0 to 1 representing the opacity of the TLegend white background (default: 0)
+    from 0 to 1 representing the opacity of the TLegend white background (default: 0.5)
 * `legend_percentageinbox` [Boolean]
-    show relative process contributions as %age in the legend thumbnails (default: False)
+    show relative process contributions as %age in the legend thumbnails (default: True)
 * `legend_scalex` [Float]
     scale width of legend by this factor (default: 1)
 * `legend_scaley` [Float]
     scale height of legend by this factor (default: 1)
 * `legend_smart` [Boolean]
-    Smart alignment of legend to prevent overlaps (default: False)
+    Smart alignment of legend to prevent overlaps (default: True)
 * `lumi_unit` [String]
     Unit for lumi label (default: "fb")
 * `lumi_value` [String]
@@ -80,8 +80,10 @@ python -c "__import__('plottery').Options().usage()"
     Pair of numerator and denominator histogram indices (from `bgs`) for ratio (default: None)
 * `ratio_pull` [Boolean]
     show pulls instead of ratios in ratio pad (default: False)
+* `ratio_pull_numbers` [Boolean]
+    show numbers for pulls, and mean/sigma (default: True)
 * `ratio_range` [List]
-    pair for min and max y-value for ratio (default: [0.0, 2.0])
+    pair for min and max y-value for ratio; default auto re-sizes to 3 sigma range (default: [-1, -1])
 * `show_bkg_errors` [Boolean]
     show error bar for background stack (default: False)
 * `show_bkg_smooth` [Boolean]
@@ -93,11 +95,11 @@ python -c "__import__('plottery').Options().usage()"
 * `us_flag_coordinates` [List]
     Specify flag location with (x pos, y pos, size) (default: [0.68, 0.96, 0.06])
 * `xaxis_label` [String]
-    label for x axis (default: "x title")
+    label for x axis (default: "")
 * `xaxis_log` [Boolean]
     log scale x-axis (default: False)
 * `xaxis_moreloglabels` [Boolean]
-    show denser labels with logscale for x axis (default: False)
+    show denser labels with logscale for x axis (default: True)
 * `xaxis_noexponents` [Boolean]
     don't show exponents in logscale labels for x axis (default: False)
 * `xaxis_range` [List]
@@ -107,7 +109,7 @@ python -c "__import__('plottery').Options().usage()"
 * `yaxis_log` [Boolean]
     log scale y-axis (default: False)
 * `yaxis_moreloglabels` [Boolean]
-    show denser labels with logscale for y axis (default: False)
+    show denser labels with logscale for y axis (default: True)
 * `yaxis_noexponents` [Boolean]
     don't show exponents in logscale labels for y axis (default: False)
 * `yaxis_range` [List]
@@ -117,7 +119,7 @@ python -c "__import__('plottery').Options().usage()"
 * `zaxis_log` [Boolean]
     log scale z-axis (default: False)
 * `zaxis_moreloglabels` [Boolean]
-    show denser labels with logscale for z axis (default: False)
+    show denser labels with logscale for z axis (default: True)
 * `zaxis_noexponents` [Boolean]
     don't show exponents in logscale labels for z axis (default: False)
 * `zaxis_range` [List]
