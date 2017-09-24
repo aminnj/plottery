@@ -207,12 +207,31 @@ def get_legend_marker_info(legend):
     boxwidth = margin
     boxw = boxwidth*0.35
     yspace = (y2-y1)/nrows;
+    draw_vertical = False
     coordsNDC = [] 
+
     for ientry in range(nrows*ncols):
-        icol = ientry // nrows
-        irow_in_column = ientry % nrows
-        coordsNDC.append([x1+0.5*margin+((x2-x1)/ncols-(boxwidth*0.65))*icol,y2-0.5*yspace-irow_in_column*yspace])
-    return { "coords": coordsNDC, "label_height": (0.6-0.1*ncols)*yspace, "box_width": boxw }
+        icol = ientry % ncols
+        irow = ientry // ncols
+        # note, we can't support more than 2 columns because
+        # ROOT won't give us an easy way to get the relative sizes
+        # of the columns (we need to know the text sizes) :(
+        colfudge = -margin*0.35 # 2 cols
+        xc = x1+0.5*margin+((x2-x1)/ncols+(colfudge))*icol
+        yc = y2-0.5*yspace-irow*yspace
+        coordsNDC.append([xc,yc])
+
+    # if marker box is tall and skinny, the height of the text
+    # is not the limitation. the width is. so we scale down the
+    # label height a bit to accomodate the width
+    label_height = (0.6-0.1*ncols)*yspace
+    if label_height/boxw > 2.1:
+        # if super tall/skinny, also draw 90deg rotated text
+        draw_vertical = True
+    if label_height/boxw > 1.6:
+        label_height = 1.6*boxw
+
+    return { "coords": coordsNDC, "label_height": label_height, "box_width": boxw, "draw_vertical": draw_vertical }
 
 def get_stack_maximum(data, stack):
     scalefact = 1.2
