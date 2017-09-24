@@ -4,14 +4,12 @@ import plottery as ply
 
 """
 0 to print out all possible options and their defaults
-1 to show two overlaid 1D hists
-2 to show three TGraph ROC curves 
-3 to show a TH2D with smart bin labels...fancy
+1 to show two simply overlaid 1D hists
+2 to show overlaid 1D hists with signals, data, ratio
+3 to show three TGraph ROC curves 
+4 to show a TH2D with smart bin labels
 """
-# which_tests = [0]
-which_tests = [1, 2, 3]
-# which_tests = [1]
-# which_tests = [2]
+which_tests = [0, 1, 2, 3, 4]
 
 for which_test in which_tests:
 
@@ -20,9 +18,24 @@ for which_test in which_tests:
         ply.Options().usage()
 
     if which_test == 1:
+        h1 = r.TH1F("h1","nb",10,0,10)
+        h2 = r.TH1F("h2","nj",10,0,10)
+        h1.FillRandom("gaus",300)
+        h2.FillRandom("expo",300)
+        ply.plot_hist(
+            bgs=[h1,h2],
+            options = {
+                "do_stack": False,
+                "yaxis_log": True,
+                "output_name": "examples/test1.pdf",
+                "output_ic": True,
+                }
+            )
 
-        scalefact_all = 1000
-        scalefact_mc = 7
+    if which_test == 2:
+
+        scalefact_all = 500
+        scalefact_mc = 15
         
         nbins = 30
         h1 = r.TH1F("h1","h1",nbins,0,5)
@@ -41,31 +54,42 @@ for which_test in which_tests:
         hdata.FillRandom("gaus",int(6*scalefact_all))
         hdata.FillRandom("expo",int(5.2*scalefact_all))
         hdata.FillRandom("landau",int(8*scalefact_all))
+        hdata.FillRandom("expo",int(1*scalefact_all)) # signal injection
+
+        hsig1 = r.TH1F("hsig1","hsig1",nbins,0,5)
+        hsig1.FillRandom("expo",int(scalefact_mc*1*scalefact_all))
+        hsig1.Scale(1./scalefact_mc)
+
+        hsig2 = r.TH1F("hsig2","hsig2",nbins,0,5)
+        hsig2.FillRandom("gaus",int(scalefact_mc*1*scalefact_all))
+        hsig2.Scale(1./scalefact_mc)
+
+        hsyst = r.TH1F("hsyst","hsyst",nbins,0,5)
+        hsyst.FillRandom("gaus",int(scalefact_all/5.*1))
+        hsyst.FillRandom("expo",int(scalefact_all/5.*4))
 
         ply.plot_hist(
                 data=hdata,
                 bgs=[h1,h2,h3],
+                sigs = [hsig1, hsig2],
+                syst = hsyst,
+                sig_labels = ["SUSY", "Magic"],
                 colors = [r.kRed-2, r.kAzure+2, r.kGreen-2],
-                legend_labels = ["first", "second", "third"],
+                legend_labels = ["First", "Second", "Third"],
                 options = {
                     "do_stack": True,
-                    "legend_alignment": "bottom left",
-                    # "legend_scalex": 1.3,
-                    # "legend_scaley": 0.7,
-                    # "legend_ncolumns": 2,
-                    "legend_opacity": 0.5,
+                    "legend_scalex": 0.7,
+                    "legend_scaley": 1.5,
                     "extra_text": ["#slash{E}_{T} > 50 GeV","N_{jets} #geq 2","H_{T} > 300 GeV"],
-                    "extra_text_xpos": 0.35,
                     # "yaxis_log": True,
-                    "yaxis_moreloglabels": True,
                     "ratio_range":[0.8,1.2],
-                    # "ratio_numden_indices": [0,1],
-                    # "hist_disable_xerrors": True,
-                    # "ratio_chi2prob": True,
-                    "output_name": "test1.pdf",
+                    # "ratio_pull": True,
+                    "hist_disable_xerrors": True,
+                    "ratio_chi2prob": True,
+                    "output_name": "examples/test2.pdf",
                     "legend_percentageinbox": True,
                     "cms_label": "Preliminary",
-                    "lumi_value": 1.,
+                    "lumi_value": "-inf",
                     "output_ic": True,
                     "us_flag": True,
                     # "output_jsroot": True,
@@ -73,7 +97,9 @@ for which_test in which_tests:
                 )
 
 
-    elif which_test == 2:
+
+
+    elif which_test == 3:
 
         ply.plot_graph(
                 [
@@ -97,13 +123,13 @@ for which_test in which_tests:
                     "xaxis_range": [0.1,1.0],
                     "yaxis_range": [0.1,1.0],
                     "title": "Crappy ROC curve",
-                    "output_name": "test2.pdf",
+                    "output_name": "examples/test3.pdf",
                     "output_ic": True,
                     }
                 )
 
         
-    elif which_test == 3:
+    elif which_test == 4:
 
         xyg = r.TF2("xygaus","xygaus",0,10,0,10);
         xyg.SetParameters(1,5,2,5,2)  # amplitude, meanx,sigmax,meany,sigmay
@@ -113,37 +139,11 @@ for which_test in which_tests:
                 h2,
                 options = {
                     "zaxis_log": True,
-                    "output_name": "test.pdf",
                     "bin_text_smart": True,
-                    "output_name": "test3.pdf",
+                    "output_name": "examples/test4.pdf",
                     "us_flag": True,
-                    # "us_flag_coordinates": [0.9,0.96,0.06],
                     "output_ic": True,
+                    "zaxis_noexponents": True,
                     }
                 )
-
-
-    elif which_test == 4:
-
-        ########################################
-        ################# WIP ##################
-        ########################################
-
-        xyg = r.TF2("xygaus","xygaus",0,10,0,10);
-        xyg.SetParameters(1,4,2,6,2)  # amplitude, meanx,sigmax,meany,sigmay
-        h2 = r.TH2F("h2","h2",10,0,10, 10,0,10)
-        h2.FillRandom("xygaus",10000)
-        ply.plot_hist_2d_projections(
-                h2,
-                options = {
-                    "zaxis_log": True,
-                    "output_name": "test.pdf",
-                    "bin_text_smart": False,
-                    "output_name": "test4.pdf",
-                    "us_flag": False,
-                    # "us_flag_coordinates": [0.9,0.96,0.06],
-                    "output_ic": True,
-                    }
-                )
-
 
