@@ -27,6 +27,9 @@ Features like that should be written around plottery, not within it.
 * Options should be functionally grouped (e.g., options applying to legend should start with `legend_`, options
 applying to the x-axis should start with `xaxis_`). See the list of supported options below for an idea. Also, this
 makes it so printing out options alphabetically retains a logical grouping.
+* Every commit :blue_book: should contain at least :one: emoji representing the theme of the commit. For example,
+:new: can be used with a completely new feature, :beetle: for bugs, :question: if you're unsure if something is broken
+by the commit, :anguished: to express frustration, and :poop: for those super-special commits.
 
 ## List of supported options
 Note that the following list was obtained _verbatim_ with
