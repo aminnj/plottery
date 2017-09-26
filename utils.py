@@ -342,7 +342,7 @@ def draw_flag(c1, cx, cy, size, _persist=[]):
 
 def get_mean_sigma_1d_yvals(hist):
     """
-    Return mean and sigma of yvals of a 1D hist (by basically "projecting" onto y-axis)
+    Return mean, sigma, yvals of a 1D hist (by basically "projecting" onto y-axis)
     """
     vals = list(hist)[1:-1]
     errs = [hist.GetBinError(ibin) for ibin in range(hist.GetNbinsX()+1)][1:-1]
@@ -352,7 +352,7 @@ def get_mean_sigma_1d_yvals(hist):
         if err < 1.e-6: continue
         htmp.Fill(val,1./err)
     mean, sigma = htmp.GetMean(), htmp.GetRMS()
-    return mean, sigma
+    return mean, sigma, vals
 
 def move_in_overflows(h):
     """

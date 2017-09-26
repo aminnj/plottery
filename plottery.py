@@ -518,7 +518,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
                 prob = r.TMath.Prob(chi2,ratio.GetNbinsX()-1)
                 to_show = "P(#chi^{{2}}/ndof) = {:.2f}".format(prob)
             if opts["ratio_pull"] and opts["ratio_pull_numbers"]:
-                mean, sigma = utils.get_mean_sigma_1d_yvals(ratio)
+                mean, sigma, vals = utils.get_mean_sigma_1d_yvals(ratio)
                 to_show = "Pulls: #mu = {:.2f}, #sigma = {:.2f}".format(mean,sigma)
             t.DrawLatexNDC(0.5,yloc+0.01,to_show)
             oldpad.cd()
@@ -534,7 +534,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
 def do_style_ratio(ratio, opts):
     if opts["ratio_range"][1] <= opts["ratio_range"][0]:
         # if high <= low, compute range automatically (+-3 sigma interval)
-        mean, sigma = utils.get_mean_sigma_1d_yvals(ratio)
+        mean, sigma, vals = utils.get_mean_sigma_1d_yvals(ratio)
         low = max(mean-3*sigma,min(vals))-sigma/1e3
         high = min(mean+3*sigma,max(vals))+sigma/1e3
         opts["ratio_range"] = [low,high]
