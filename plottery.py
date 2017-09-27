@@ -22,16 +22,16 @@ class Options(object):
             # Canvas
             "canvas_width": {"type": "Int", "desc": "width of TCanvas in pixel", "default": None, "kinds": ["1dratio","graph","2d"], },
             "canvas_height": {"type": "Int", "desc": "height of TCanvas in pixel", "default": None, "kinds": ["1dratio","graph","2d"], },
-            "canvas_main_y1": {"type": "Float", "desc": "main plot tpad y1", "default": 0.19, "kinds": ["1dratio","graph","2d"], },
-            "canvas_main_topmargin": {"type": "Float", "desc": "ratio plot top margin", "default": 0.08, "kinds": ["1dratio"], },
-            "canvas_main_bottommargin": {"type": "Float", "desc": "ratio plot bottom margin", "default": 0.12, "kinds": ["1dratio"], },
-            "canvas_main_rightmargin": {"type": "Float", "desc": "ratio plot right margin", "default": 0.04, "kinds": ["1dratio"], },
-            "canvas_main_leftmargin": {"type": "Float", "desc": "ratio plot left margin", "default": 0.13, "kinds": ["1dratio"], },
-            "canvas_ratio_y2": {"type": "Float", "desc": "ratio tpad y2", "default": 0.18, "kinds": ["1dratio","graph","2d"], },
-            "canvas_ratio_topmargin": {"type": "Float", "desc": "ratio plot top margin", "default": 0.08, "kinds": ["1dratio"], },
-            "canvas_ratio_bottommargin": {"type": "Float", "desc": "ratio plot bottom margin", "default": 0.12, "kinds": ["1dratio"], },
-            "canvas_ratio_rightmargin": {"type": "Float", "desc": "ratio plot right margin", "default": 0.04, "kinds": ["1dratio"], },
-            "canvas_ratio_leftmargin": {"type": "Float", "desc": "ratio plot left margin", "default": 0.13, "kinds": ["1dratio"], },
+            "canvas_main_y1": {"type": "Float", "desc": "main plot tpad y1", "default": 0.18, "kinds": ["1dratio","graph","2d"], },
+            "canvas_main_topmargin": {"type": "Float", "desc": "ratio plot top margin", "default": None, "kinds": ["1dratio"], },
+            "canvas_main_bottommargin": {"type": "Float", "desc": "ratio plot bottom margin", "default": None, "kinds": ["1dratio"], },
+            "canvas_main_rightmargin": {"type": "Float", "desc": "ratio plot right margin", "default": None, "kinds": ["1dratio"], },
+            "canvas_main_leftmargin": {"type": "Float", "desc": "ratio plot left margin", "default": None, "kinds": ["1dratio"], },
+            "canvas_ratio_y2": {"type": "Float", "desc": "ratio tpad y2", "default": 0.19, "kinds": ["1dratio","graph","2d"], },
+            "canvas_ratio_topmargin": {"type": "Float", "desc": "ratio plot top margin", "default": None, "kinds": ["1dratio"], },
+            "canvas_ratio_bottommargin": {"type": "Float", "desc": "ratio plot bottom margin", "default": None, "kinds": ["1dratio"], },
+            "canvas_ratio_rightmargin": {"type": "Float", "desc": "ratio plot right margin", "default": None, "kinds": ["1dratio"], },
+            "canvas_ratio_leftmargin": {"type": "Float", "desc": "ratio plot left margin", "default": None, "kinds": ["1dratio"], },
             "canvas_tick_one_side": {"type": "Boolean", "desc": "ratio plot left margin", "default": False, "kinds": ["1dratio"], },
 
             # Legend
@@ -97,8 +97,8 @@ class Options(object):
             "ratio_xaxis_title_size": { "type": "Float", "desc": "X-axis label size", "default": None, "kinds": ["1dratio"], },
             "ratio_xaxis_title_offset": { "type": "FLoat", "desc": "X-axis label offset", "default": None, "kinds": ["1dratio"], },
             "ratio_label_size": { "type": "Float", "desc": "X-axis label size", "default": 0., "kinds": ["1dratio"], },
-            "ratio_xaxis_label_offset": { "type": "Float", "desc": "offset to the x-axis labels (numbers)", "default": 0.005, "kinds": ["1dratio"], },
-            "ratio_yaxis_label_offset": { "type": "Float", "desc": "offset to the y-axis labels (numbers)", "default": 0.005, "kinds": ["1dratio"], },
+            "ratio_xaxis_label_offset": { "type": "Float", "desc": "offset to the x-axis labels (numbers)", "default": None, "kinds": ["1dratio"], },
+            "ratio_yaxis_label_offset": { "type": "Float", "desc": "offset to the y-axis labels (numbers)", "default": None, "kinds": ["1dratio"], },
             "ratio_tick_length_scale": { "type": "Float", "desc": "Tick length scale of ratio pads", "default": 1.0, "kinds": ["1dratio"], },
 
             # Overall
@@ -326,25 +326,25 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     do_ratio = has_data or opts["ratio_numden_indices"]
     if do_ratio:
         pad_main = r.TPad("pad1","pad1",0.0,opts["canvas_main_y1"],1.0,1.0)
-        pad_main.SetTopMargin(opts["canvas_main_topmargin"])
-        pad_main.SetRightMargin(opts["canvas_main_rightmargin"])
-        pad_main.SetBottomMargin(opts["canvas_main_bottommargin"])
-        pad_main.SetLeftMargin(opts["canvas_main_leftmargin"])
+        if opts["canvas_main_topmargin"]: pad_main.SetTopMargin(opts["canvas_main_topmargin"])
+        if opts["canvas_main_rightmargin"]: pad_main.SetRightMargin(opts["canvas_main_rightmargin"])
+        if opts["canvas_main_bottommargin"]: pad_main.SetBottomMargin(opts["canvas_main_bottommargin"])
+        if opts["canvas_main_leftmargin"]: pad_main.SetLeftMargin(opts["canvas_main_leftmargin"])
         if opts["canvas_tick_one_side"]: pad_main.SetTicks(0, 0)
         pad_ratio = r.TPad("pad2","pad2",0.0, 0.00, 1.0, opts["canvas_ratio_y2"])
-        pad_ratio.SetTopMargin(opts["canvas_ratio_topmargin"])
-        pad_ratio.SetRightMargin(opts["canvas_ratio_rightmargin"])
-        pad_ratio.SetBottomMargin(opts["canvas_ratio_bottommargin"])
-        pad_ratio.SetLeftMargin(opts["canvas_ratio_leftmargin"])
+        if opts["canvas_ratio_topmargin"]: pad_ratio.SetTopMargin(opts["canvas_ratio_topmargin"])
+        if opts["canvas_ratio_rightmargin"]: pad_ratio.SetRightMargin(opts["canvas_ratio_rightmargin"])
+        if opts["canvas_ratio_bottommargin"]: pad_ratio.SetBottomMargin(opts["canvas_ratio_bottommargin"])
+        if opts["canvas_ratio_leftmargin"]: pad_ratio.SetLeftMargin(opts["canvas_ratio_leftmargin"])
         if opts["canvas_tick_one_side"]: pad_ratio.SetTicks(0, 0)
         pad_main.Draw()
         pad_ratio.Draw()
     else:
         pad_main = r.TPad("pad1","pad1",0.,0.,1.,1.)
-        pad_main.SetTopMargin(opts["canvas_main_topmargin"])
-        pad_main.SetRightMargin(opts["canvas_main_rightmargin"])
-        pad_main.SetBottomMargin(opts["canvas_main_bottommargin"])
-        pad_main.SetLeftMargin(opts["canvas_main_leftmargin"])
+        if opts["canvas_main_topmargin"]: pad_main.SetTopMargin(opts["canvas_main_topmargin"])
+        if opts["canvas_main_rightmargin"]: pad_main.SetRightMargin(opts["canvas_main_rightmargin"])
+        if opts["canvas_main_bottommargin"]: pad_main.SetBottomMargin(opts["canvas_main_bottommargin"])
+        if opts["canvas_main_leftmargin"]: pad_main.SetLeftMargin(opts["canvas_main_leftmargin"])
         if opts["canvas_tick_one_side"]: pad_main.SetTicks(0, 0)
         pad_main.Draw()
 
@@ -613,17 +613,17 @@ def do_style_ratio(ratio, opts):
     ratio.SetLineWidth(2)
     ratio.SetTitle("")
     ratio.GetYaxis().SetTitle(opts["ratio_name"])
-    ratio.GetYaxis().SetTitleOffset(opts["ratio_name_offset"])
-    ratio.GetYaxis().SetTitleSize(opts["ratio_name_size"])
+    if opts["ratio_name_offset"]: ratio.GetYaxis().SetTitleOffset(opts["ratio_name_offset"])
+    if opts["ratio_name_size"]: ratio.GetYaxis().SetTitleSize(opts["ratio_name_size"])
     ratio.GetYaxis().SetNdivisions(opts["ratio_ndivisions"])
     ratio.GetYaxis().SetLabelSize(0.13)
-    ratio.GetYaxis().SetLabelOffset(opts["ratio_yaxis_label_offset"])
+    if opts["ratio_yaxis_label_offset"]: ratio.GetYaxis().SetLabelOffset(opts["ratio_yaxis_label_offset"])
     ratio.GetYaxis().SetRangeUser(*opts["ratio_range"])
     ratio.GetXaxis().SetLabelSize(opts["ratio_label_size"])
     ratio.GetXaxis().SetTitle(opts["ratio_xaxis_title"])
     if opts["ratio_xaxis_title_size"]: ratio.GetXaxis().SetTitleSize(opts["ratio_xaxis_title_size"])
     if opts["ratio_xaxis_title_offset"] :ratio.GetXaxis().SetTitleOffset(opts["ratio_xaxis_title_offset"])
-    ratio.GetXaxis().SetLabelOffset(opts["ratio_xaxis_label_offset"])
+    if opts["ratio_xaxis_label_offset"]: ratio.GetXaxis().SetLabelOffset(opts["ratio_xaxis_label_offset"])
     ratio.GetXaxis().SetTickSize(0.06 * opts["ratio_tick_length_scale"])
     ratio.GetYaxis().SetTickSize(0.03 * opts["ratio_tick_length_scale"])
 
