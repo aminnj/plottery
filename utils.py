@@ -233,8 +233,10 @@ def get_legend_marker_info(legend):
 
     return { "coords": coordsNDC, "label_height": label_height, "box_width": boxw, "draw_vertical": draw_vertical }
 
-def get_stack_maximum(data, stack):
+def get_stack_maximum(data, stack, opts={}):
     scalefact = 1.2
+    if opts["yaxis_range"]:
+        return opts["yaxis_range"][1]
     if data:
         return scalefact*max(data.GetMaximum(),stack.GetMaximum())
     else:
@@ -369,6 +371,9 @@ def move_in_overflows(h):
     v_last = h[nbins]
     e_over = h.GetBinError(nbins+1)
     e_last = h.GetBinError(nbins)
+
+    # When the bin labels are set the CanExtend messes things up.
+    h.SetCanExtend(False)
 
     # Reset overflows to 0
     h.SetBinContent(0, 0)

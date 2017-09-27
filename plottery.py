@@ -19,6 +19,21 @@ class Options(object):
 
         self.recognized_options = {
 
+            # Canvas
+            "canvas_width": {"type": "Int", "desc": "width of TCanvas in pixel", "default": 600, "kinds": ["1dratio","graph","2d"], },
+            "canvas_height": {"type": "Int", "desc": "height of TCanvas in pixel", "default": 800, "kinds": ["1dratio","graph","2d"], },
+            "canvas_main_y1": {"type": "Float", "desc": "main plot tpad y1", "default": 0.19, "kinds": ["1dratio","graph","2d"], },
+            "canvas_main_topmargin": {"type": "Float", "desc": "ratio plot top margin", "default": 0.08, "kinds": ["1dratio"], },
+            "canvas_main_bottommargin": {"type": "Float", "desc": "ratio plot bottom margin", "default": 0.12, "kinds": ["1dratio"], },
+            "canvas_main_rightmargin": {"type": "Float", "desc": "ratio plot right margin", "default": 0.04, "kinds": ["1dratio"], },
+            "canvas_main_leftmargin": {"type": "Float", "desc": "ratio plot left margin", "default": 0.13, "kinds": ["1dratio"], },
+            "canvas_ratio_y2": {"type": "Float", "desc": "ratio tpad y2", "default": 0.18, "kinds": ["1dratio","graph","2d"], },
+            "canvas_ratio_topmargin": {"type": "Float", "desc": "ratio plot top margin", "default": 0.08, "kinds": ["1dratio"], },
+            "canvas_ratio_bottommargin": {"type": "Float", "desc": "ratio plot bottom margin", "default": 0.12, "kinds": ["1dratio"], },
+            "canvas_ratio_rightmargin": {"type": "Float", "desc": "ratio plot right margin", "default": 0.04, "kinds": ["1dratio"], },
+            "canvas_ratio_leftmargin": {"type": "Float", "desc": "ratio plot left margin", "default": 0.13, "kinds": ["1dratio"], },
+            "canvas_tick_one_side": {"type": "Boolean", "desc": "ratio plot left margin", "default": False, "kinds": ["1dratio"], },
+
             # Legend
             "legend_coordinates": { "type": "List", "desc": "4 elements specifying TLegend constructor coordinates", "default": [0.63,0.67,0.93,0.87], "kinds": ["1dratio","graph"], },
             "legend_alignment": { "type": "Boolean", "desc": "easy alignment of TLegend. String containing two words from: bottom, top, left, right", "default": "", "kinds": ["1dratio","graph"], },
@@ -28,6 +43,7 @@ class Options(object):
             "legend_scaley": { "type": "Float", "desc": "scale height of legend by this factor", "default": 1, "kinds": ["1dratio","graph"], },
             "legend_opacity": { "type": "Float", "desc": "from 0 to 1 representing the opacity of the TLegend white background", "default": 0.5, "kinds": ["1dratio","graph"], },
             "legend_ncolumns": { "type": "Int", "desc": "number of columns in the legend", "default": 1, "kinds": ["1dratio","graph"], },
+            "legend_column_separation": { "type": "Float", "desc": "column separation size", "default": None, "kinds": ["1dratio","graph"], },
             "legend_percentageinbox": { "type": "Boolean", "desc": "show relative process contributions as %age in the legend thumbnails", "default": True, "kinds": ["1dratio"], },
 
             # Axes
@@ -38,6 +54,22 @@ class Options(object):
             "xaxis_label": { "type": "String", "desc": "label for x axis", "default": "", "kinds": ["1dratio","graph","2d"], },
             "yaxis_label": { "type": "String", "desc": "label for y axis", "default": "Events", "kinds": ["1dratio","graph","2d"], },
             "zaxis_label": { "type": "String", "desc": "label for z axis", "default": "", "kinds": ["2d"], },
+
+            "xaxis_label_size_scale": { "type": "Float", "desc": "size of fonts for x axis", "default": 1.0, "kinds": ["1dratio","graph","2d"], },
+            "yaxis_label_size_scale": { "type": "Float", "desc": "size of fonts for y axis", "default": 1.0, "kinds": ["1dratio","graph","2d"], },
+            "zaxis_label_size_scale": { "type": "Float", "desc": "size of fonts for z axis", "default": 1.0, "kinds": ["2d"], },
+
+            "xaxis_title_size": { "type": "Float", "desc": "size of fonts for x axis title", "default": None, "kinds": ["1dratio","graph","2d"], },
+            "yaxis_title_size": { "type": "Float", "desc": "size of fonts for y axis title", "default": None, "kinds": ["1dratio","graph","2d"], },
+
+            "xaxis_title_offset": { "type": "Float", "desc": "offset of x axis title", "default": None, "kinds": ["1dratio","graph","2d"], },
+            "yaxis_title_offset": { "type": "Float", "desc": "offset of y axis title", "default": None, "kinds": ["1dratio","graph","2d"], },
+
+            "xaxis_label_offset_scale": { "type": "Float", "desc": "x axis tickmark labels offset", "default": 1.0, "kinds": ["1dratio","graph","2d"], },
+            "yaxis_label_offset_scale": { "type": "Float", "desc": "y axis tickmark labels offset", "default": 1.0, "kinds": ["1dratio","graph","2d"], },
+
+            "xaxis_tick_length_scale": { "type": "Float", "desc": "x axis tickmark length scale", "default": 1.0, "kinds": ["1dratio","graph","2d"], },
+            "yaxis_tick_length_scale": { "type": "Float", "desc": "y axis tickmark length scale", "default": 1.0, "kinds": ["1dratio","graph","2d"], },
 
             "xaxis_moreloglabels": { "type": "Boolean", "desc": "show denser labels with logscale for x axis", "default": True, "kinds": ["1dratio","graph","2d"], },
             "yaxis_moreloglabels": { "type": "Boolean", "desc": "show denser labels with logscale for y axis", "default": True, "kinds": ["1dratio","graph","2d"], },
@@ -52,6 +84,8 @@ class Options(object):
 
             # Ratio
             "ratio_name": { "type": "String", "desc": "name of ratio pad", "default": "Data/MC", "kinds": ["1dratio"], },
+            "ratio_name_size": { "type": "Float", "desc": "size of the name on the ratio pad (e.g. data/MC)", "default": 0.2, "kinds": ["1dratio"], },
+            "ratio_name_offset": { "type": "Float", "desc": "offset to the name of ratio pad", "default": 0.25, "kinds": ["1dratio"], },
             "ratio_range": { "type": "List", "desc": "pair for min and max y-value for ratio; default auto re-sizes to 3 sigma range", "default": [-1,-1], "kinds": ["1dratio"], },
             "ratio_horizontal_lines": { "type": "List", "desc": "list of y-values to draw horizontal line", "default": [1.], "kinds": ["1dratio"], },
             "ratio_chi2prob": { "type": "Boolean", "desc": "show chi2 probability for ratio", "default": False, "kinds": ["1dratio"], },
@@ -59,6 +93,9 @@ class Options(object):
             "ratio_pull_numbers": { "type": "Boolean", "desc": "show numbers for pulls, and mean/sigma", "default": True, "kinds": ["1dratio"], },
             "ratio_ndivisions": { "type": "Int", "desc": "SetNdivisions integer for ratio", "default": 505, "kinds": ["1dratio"], },
             "ratio_numden_indices": { "type": "List", "desc": "Pair of numerator and denominator histogram indices (from `bgs`) for ratio", "default": None, "kinds": ["1dratio"], },
+            "ratio_label_size": { "type": "Float", "desc": "X-axis label size", "default": 0., "kinds": ["1dratio"], },
+            "ratio_label_offset": { "type": "Float", "desc": "offset to the axis labels (numbers)", "default": 0.005, "kinds": ["1dratio"], },
+            "ratio_tick_length_scale": { "type": "Float", "desc": "Tick length scale of ratio pads", "default": 1.0, "kinds": ["1dratio"], },
 
             # Overall
             "title": { "type": "String", "desc": "plot title", "default": "", "kinds": ["1dratio","graph","2d"], },
@@ -167,6 +204,10 @@ def plot_graph(valpairs,colors=[],legend_labels=[],draw_styles=[],options={}):
     utils.set_style()
 
     c1 = r.TCanvas()
+    if opts["canvas_width"] and opts["canvas_height"]:
+        width = opts["canvas_width"]
+        height = opts["canvas_height"]
+        c1 = r.TCanvas("c1", "c1", width, height)
     legend = get_legend(opts)
 
     mg = r.TMultiGraph()
@@ -259,6 +300,7 @@ def get_legend(opts):
         legend.SetBorderSize(0)
     legend.SetTextFont(42)
     legend.SetNColumns(opts["legend_ncolumns"])
+    if opts["legend_column_separation"]: legend.SetColumnSeparation(opts["legend_column_separation"])
     return legend
 
 
@@ -269,16 +311,35 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     style = utils.set_style()
 
     c1 = r.TCanvas()
+    if opts["canvas_width"] and opts["canvas_height"]:
+        width = opts["canvas_width"]
+        height = opts["canvas_height"]
+        c1 = r.TCanvas("c1", "c1", width, height)
 
     has_data = data and data.InheritsFrom(r.TH1.Class())
     do_ratio = has_data or opts["ratio_numden_indices"]
     if do_ratio:
-        pad_main = r.TPad("pad1","pad1",0.0,0.18,1.0,1.0)
-        pad_ratio = r.TPad("pad2","pad2",0.0, 0.00, 1.0, 0.19)
+        pad_main = r.TPad("pad1","pad1",0.0,opts["canvas_main_y1"],1.0,1.0)
+        pad_main.SetTopMargin(opts["canvas_main_topmargin"])
+        pad_main.SetRightMargin(opts["canvas_main_rightmargin"])
+        pad_main.SetBottomMargin(opts["canvas_main_bottommargin"])
+        pad_main.SetLeftMargin(opts["canvas_main_leftmargin"])
+        if opts["canvas_tick_one_side"]: pad_main.SetTicks(0, 0)
+        pad_ratio = r.TPad("pad2","pad2",0.0, 0.00, 1.0, opts["canvas_ratio_y2"])
+        pad_ratio.SetTopMargin(opts["canvas_ratio_topmargin"])
+        pad_ratio.SetRightMargin(opts["canvas_ratio_rightmargin"])
+        pad_ratio.SetBottomMargin(opts["canvas_ratio_bottommargin"])
+        pad_ratio.SetLeftMargin(opts["canvas_ratio_leftmargin"])
+        if opts["canvas_tick_one_side"]: pad_ratio.SetTicks(0, 0)
         pad_main.Draw()
         pad_ratio.Draw()
     else:
         pad_main = r.TPad("pad1","pad1",0.,0.,1.,1.)
+        pad_main.SetTopMargin(opts["canvas_main_topmargin"])
+        pad_main.SetRightMargin(opts["canvas_main_rightmargin"])
+        pad_main.SetBottomMargin(opts["canvas_main_bottommargin"])
+        pad_main.SetLeftMargin(opts["canvas_main_leftmargin"])
+        if opts["canvas_tick_one_side"]: pad_main.SetTicks(0, 0)
         pad_main.Draw()
 
     pad_main.cd()
@@ -356,7 +417,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     # returns the actual maximum (even though that's what we set it to!) because
     # thstack multiplies the max by 1.05??? Odd
     # So here, we take into account that scaling for the rest of this function
-    ymax = utils.get_stack_maximum(data,stack)
+    ymax = utils.get_stack_maximum(data,stack,opts)
     stack.SetMaximum(ymax)
     stack.Draw(drawopt)
     ymax = 1.05*ymax if opts["do_stack"] else 1.00*ymax
@@ -396,7 +457,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
 
     if sigs:
         map(utils.move_in_overflows, sigs)
-        colors = cycle([r.kRed, r.kOrange-4, r.kTeal-5])
+        colors = cycle([r.kRed, r.kBlue, r.kOrange-4, r.kTeal-5])
         if len(sig_labels) < len(sigs):
             sig_labels = [sig.GetTitle() for sig in sigs]
         for hsig,signame,color in zip(sigs, sig_labels,colors):
@@ -405,8 +466,8 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
             hsig.SetLineWidth(3)
             hsig.SetMarkerSize(0.8)
             hsig.SetLineColor(color)
-            legend.AddEntry(hsig,signame, "LPE")
-            hsig.Draw("samehiste")
+            legend.AddEntry(hsig,signame, "LP")
+            hsig.Draw("samehist")
 
 
 
@@ -543,13 +604,16 @@ def do_style_ratio(ratio, opts):
     ratio.SetLineWidth(2)
     ratio.SetTitle("")
     ratio.GetYaxis().SetTitle(opts["ratio_name"])
-    ratio.GetYaxis().SetTitleOffset(0.25)
-    ratio.GetYaxis().SetTitleSize(0.2)
+    ratio.GetYaxis().SetTitleOffset(opts["ratio_name_offset"])
+    ratio.GetYaxis().SetTitleSize(opts["ratio_name_size"])
     ratio.GetYaxis().SetNdivisions(opts["ratio_ndivisions"])
     ratio.GetYaxis().SetLabelSize(0.13)
+    ratio.GetYaxis().SetLabelOffset(opts["ratio_label_offset"])
     ratio.GetYaxis().SetRangeUser(*opts["ratio_range"])
-    ratio.GetXaxis().SetLabelSize(0.)
-    ratio.GetXaxis().SetTickSize(0.06)
+    ratio.GetXaxis().SetLabelSize(opts["ratio_label_size"])
+    ratio.GetXaxis().SetLabelOffset(opts["ratio_label_offset"])
+    ratio.GetXaxis().SetTickSize(0.06 * opts["ratio_tick_length_scale"])
+    ratio.GetYaxis().SetTickSize(0.03 * opts["ratio_tick_length_scale"])
 
 def draw_percentageinbox(legend, bgs, sigs, opts, has_data=False):
     t = r.TLatex()
@@ -597,6 +661,11 @@ def handle_axes(c1, obj, opts):
         c1.SetLogx(1)
         obj.GetXaxis().SetMoreLogLabels(opts["xaxis_moreloglabels"])
         obj.GetXaxis().SetNoExponent(opts["xaxis_noexponents"])
+    if opts["xaxis_label_size_scale"]: obj.GetXaxis().SetLabelSize(obj.GetXaxis().GetLabelSize() * opts["xaxis_label_size_scale"])
+    if opts["xaxis_label_offset_scale"]: obj.GetXaxis().SetLabelOffset(obj.GetXaxis().GetLabelOffset() * opts["xaxis_label_offset_scale"])
+    if opts["xaxis_tick_length_scale"]: obj.GetXaxis().SetTickLength(obj.GetXaxis().GetTickLength() * opts["xaxis_tick_length_scale"])
+    if opts["xaxis_title_size"]: obj.GetXaxis().SetTitleSize(opts["xaxis_title_size"])
+    if opts["xaxis_title_offset"]: obj.GetXaxis().SetTitleOffset(opts["xaxis_title_offset"])
 
     obj.GetYaxis().SetTitle(opts["yaxis_label"])
     if opts["yaxis_range"]: obj.GetYaxis().SetRangeUser(*opts["yaxis_range"])
@@ -604,6 +673,11 @@ def handle_axes(c1, obj, opts):
         c1.SetLogy(1)
         obj.GetYaxis().SetMoreLogLabels(opts["yaxis_moreloglabels"])
         obj.GetYaxis().SetNoExponent(opts["yaxis_noexponents"])
+    if opts["yaxis_label_size_scale"]: obj.GetYaxis().SetLabelSize(obj.GetYaxis().GetLabelSize() * opts["yaxis_label_size_scale"])
+    if opts["yaxis_label_offset_scale"]: obj.GetYaxis().SetLabelOffset(obj.GetYaxis().GetLabelOffset() * opts["yaxis_label_offset_scale"])
+    if opts["yaxis_tick_length_scale"]: obj.GetYaxis().SetTickLength(obj.GetYaxis().GetTickLength() * opts["yaxis_tick_length_scale"])
+    if opts["yaxis_title_size"]: obj.GetYaxis().SetTitleSize(opts["yaxis_title_size"])
+    if opts["yaxis_title_offset"]: obj.GetYaxis().SetTitleOffset(opts["yaxis_title_offset"])
 
     if hasattr(obj, "GetZaxis"):
         obj.GetZaxis().SetTitle(opts["zaxis_label"])
@@ -623,6 +697,10 @@ def plot_hist_2d(hist,options={}):
     utils.set_palette(style, opts["palette_name"])
 
     c1 = r.TCanvas()
+    if opts["canvas_width"] and opts["canvas_height"]:
+        width = opts["canvas_width"]
+        height = opts["canvas_height"]
+        c1 = r.TCanvas("c1", "c1", width, height)
 
     hist.Draw(opts["draw_option_2d"])
 
