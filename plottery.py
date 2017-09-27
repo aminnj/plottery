@@ -20,8 +20,8 @@ class Options(object):
         self.recognized_options = {
 
             # Canvas
-            "canvas_width": {"type": "Int", "desc": "width of TCanvas in pixel", "default": 600, "kinds": ["1dratio","graph","2d"], },
-            "canvas_height": {"type": "Int", "desc": "height of TCanvas in pixel", "default": 800, "kinds": ["1dratio","graph","2d"], },
+            "canvas_width": {"type": "Int", "desc": "width of TCanvas in pixel", "default": None, "kinds": ["1dratio","graph","2d"], },
+            "canvas_height": {"type": "Int", "desc": "height of TCanvas in pixel", "default": None, "kinds": ["1dratio","graph","2d"], },
             "canvas_main_y1": {"type": "Float", "desc": "main plot tpad y1", "default": 0.19, "kinds": ["1dratio","graph","2d"], },
             "canvas_main_topmargin": {"type": "Float", "desc": "ratio plot top margin", "default": 0.08, "kinds": ["1dratio"], },
             "canvas_main_bottommargin": {"type": "Float", "desc": "ratio plot bottom margin", "default": 0.12, "kinds": ["1dratio"], },
@@ -93,14 +93,20 @@ class Options(object):
             "ratio_pull_numbers": { "type": "Boolean", "desc": "show numbers for pulls, and mean/sigma", "default": True, "kinds": ["1dratio"], },
             "ratio_ndivisions": { "type": "Int", "desc": "SetNdivisions integer for ratio", "default": 505, "kinds": ["1dratio"], },
             "ratio_numden_indices": { "type": "List", "desc": "Pair of numerator and denominator histogram indices (from `bgs`) for ratio", "default": None, "kinds": ["1dratio"], },
+            "ratio_xaxis_title": { "type": "String", "desc": "X-axis label", "default": "", "kinds": ["1dratio"], },
+            "ratio_xaxis_title_size": { "type": "Float", "desc": "X-axis label size", "default": None, "kinds": ["1dratio"], },
+            "ratio_xaxis_title_offset": { "type": "FLoat", "desc": "X-axis label offset", "default": None, "kinds": ["1dratio"], },
             "ratio_label_size": { "type": "Float", "desc": "X-axis label size", "default": 0., "kinds": ["1dratio"], },
-            "ratio_label_offset": { "type": "Float", "desc": "offset to the axis labels (numbers)", "default": 0.005, "kinds": ["1dratio"], },
+            "ratio_xaxis_label_offset": { "type": "Float", "desc": "offset to the x-axis labels (numbers)", "default": 0.005, "kinds": ["1dratio"], },
+            "ratio_yaxis_label_offset": { "type": "Float", "desc": "offset to the y-axis labels (numbers)", "default": 0.005, "kinds": ["1dratio"], },
             "ratio_tick_length_scale": { "type": "Float", "desc": "Tick length scale of ratio pads", "default": 1.0, "kinds": ["1dratio"], },
 
             # Overall
             "title": { "type": "String", "desc": "plot title", "default": "", "kinds": ["1dratio","graph","2d"], },
             "draw_points": { "type": "Boolean", "desc": "draw points instead of fill", "default": False, "kinds": ["1d","1dratio"], },
             "draw_option_2d": { "type": "String", "desc": "hist draw option", "default": "colz", "kinds": ["2d"], },
+            "bkg_err_fill_style": { "type": "Int", "desc": "Error shade draw style", "default": 1001, "kinds": ["1d", "1dratio"], },
+            "bkg_err_fill_color": { "type": "Int", "desc": "Error shade color", "default": None, "kinds": ["1d", "1dratio"], },
 
             # CMS things
             "cms_label": {"type": "String", "desc": "E.g., 'Preliminary'; default hides label", "default": None, "kinds": ["1dratio","graph","2d"]},
@@ -435,8 +441,9 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
             bgs_syst.SetBinError(ibin, syst.GetBinContent(ibin))
         bgs_syst.SetMarkerSize(0)
         bgs_syst.SetMarkerColorAlpha(r.kWhite,0.)
-        bgs_syst.SetFillColorAlpha(r.kGray+2,0.4)
-        bgs_syst.SetFillStyle(1001)
+        if not opts["bkg_err_fill_color"]: bgs_syst.SetFillColorAlpha(r.kGray+2,0.4)
+        else: bgs_syst.SetFillColorAlpha(opts["bkg_err_fill_color"],0.4)
+        bgs_syst.SetFillStyle(opts["bkg_err_fill_style"])
 
         # Compute the systematics band in the ratio, to be drawn later in the ratio
         all_bgs = syst.Clone("all_bgs")
@@ -447,7 +454,9 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
         ratio_syst.Sumw2()
         ratio_syst.Divide(all_bgs)
         ratio_syst.SetFillColorAlpha(r.kGray+2,0.4)
-        ratio_syst.SetFillStyle(1001)
+        if not opts["bkg_err_fill_color"]: ratio_syst.SetFillColorAlpha(r.kGray+2,0.4)
+        else: ratio_syst.SetFillColorAlpha(opts["bkg_err_fill_color"],0.4)
+        ratio_syst.SetFillStyle(opts["bkg_err_fill_style"])
 
         # Draw the main band in the main pad
         bgs_syst.Draw("E2 SAME")
@@ -608,10 +617,13 @@ def do_style_ratio(ratio, opts):
     ratio.GetYaxis().SetTitleSize(opts["ratio_name_size"])
     ratio.GetYaxis().SetNdivisions(opts["ratio_ndivisions"])
     ratio.GetYaxis().SetLabelSize(0.13)
-    ratio.GetYaxis().SetLabelOffset(opts["ratio_label_offset"])
+    ratio.GetYaxis().SetLabelOffset(opts["ratio_yaxis_label_offset"])
     ratio.GetYaxis().SetRangeUser(*opts["ratio_range"])
     ratio.GetXaxis().SetLabelSize(opts["ratio_label_size"])
-    ratio.GetXaxis().SetLabelOffset(opts["ratio_label_offset"])
+    ratio.GetXaxis().SetTitle(opts["ratio_xaxis_title"])
+    if opts["ratio_xaxis_title_size"]: ratio.GetXaxis().SetTitleSize(opts["ratio_xaxis_title_size"])
+    if opts["ratio_xaxis_title_offset"] :ratio.GetXaxis().SetTitleOffset(opts["ratio_xaxis_title_offset"])
+    ratio.GetXaxis().SetLabelOffset(opts["ratio_xaxis_label_offset"])
     ratio.GetXaxis().SetTickSize(0.06 * opts["ratio_tick_length_scale"])
     ratio.GetYaxis().SetTickSize(0.03 * opts["ratio_tick_length_scale"])
 
