@@ -250,6 +250,7 @@ def plot_graph(valpairs,colors=[],legend_labels=[],draw_styles=[],options={}):
             graph.SetMarkerSize(0.20*graph.GetLineWidth())
         if ipair < len(draw_styles):
             graph.SetLineStyle(draw_styles[ipair])
+            graph.SetMarkerSize(0.)
         if ipair < len(legend_labels):
             legend.AddEntry(graph, legend_labels[ipair],legopt)
 

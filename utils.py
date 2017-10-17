@@ -1,6 +1,7 @@
 import ROOT as r
 from math import log
 import random
+from array import array
 
 
 def set_style():
@@ -138,13 +139,16 @@ def set_palette(style, palette):
         style.SetPalette(r.kInvertedDarkBodyRadiator) # default
         style.SetNumberContours(128)
     elif palette == "susy": 
-        stops = array.array('d', [0.00, 0.34, 0.61, 0.84, 1.00])
-        red   = array.array('d', [0.50, 0.50, 1.00, 1.00, 1.00])
-        green = array.array('d', [0.50, 1.00, 1.00, 0.60, 0.50])
-        blue  = array.array('d', [1.00, 1.00, 0.50, 0.40, 0.50])
+        stops = array('d', [0.00, 0.34, 0.61, 0.84, 1.00])
+        red   = array('d', [0.50, 0.50, 1.00, 1.00, 1.00])
+        green = array('d', [0.50, 1.00, 1.00, 0.60, 0.50])
+        blue  = array('d', [1.00, 1.00, 0.50, 0.40, 0.50])
         r.TColor.CreateGradientColorTable(len(stops), stops, red, green, blue, 255)
         # print get_luminosities(len(stops), stops, red, green, blue, 255)
         style.SetNumberContours(255)
+
+def get_brightdefault_colors():
+    return [r.kBlack, r.kAzure, r.kRed, r.kGreen+1, r.kOrange-2, r.kMagenta]
 
 def get_default_colors():
     return [r.kSpring-6, r.kAzure+7, r.kRed-7, r.kOrange-2, r.kCyan-7, r.kMagenta-7, r.kTeal+6, r.kGray+2]
