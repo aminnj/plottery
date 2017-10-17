@@ -45,6 +45,7 @@ class Options(object):
             "legend_ncolumns": { "type": "Int", "desc": "number of columns in the legend", "default": 1, "kinds": ["1dratio","graph"], },
             "legend_column_separation": { "type": "Float", "desc": "column separation size", "default": None, "kinds": ["1dratio","graph"], },
             "legend_percentageinbox": { "type": "Boolean", "desc": "show relative process contributions as %age in the legend thumbnails", "default": True, "kinds": ["1dratio"], },
+            "legend_datalabel": { "type": "String", "desc": "label for the data histogram in the legend", "default": "Data", "kinds": ["1dratio"], },
 
             # Axes
             "xaxis_log": { "type": "Boolean", "desc": "log scale x-axis", "default": False, "kinds": ["1dratio","graph","2d"], },
@@ -380,7 +381,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
         data.SetLineWidth(2)
         data.SetMarkerSize(0.8)
         data.SetLineColor(r.kBlack)
-        legend.AddEntry(data, "Data", "LPE" if not opts["hist_disable_xerrors"] else "PE")
+        legend.AddEntry(data, opts["legend_datalabel"], "LPE" if not opts["hist_disable_xerrors"] else "PE")
 
     stack = r.THStack("stack", "stack")
     for ibg,bg in enumerate(bgs):

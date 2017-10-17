@@ -134,6 +134,9 @@ def set_palette(style, palette):
     elif palette == "rainbow":
         style.SetPalette(r.kRainBow) # blue to red
         style.SetNumberContours(128)
+    elif palette == "radiation":
+        style.SetPalette(r.kInvertedDarkBodyRadiator) # default
+        style.SetNumberContours(128)
     elif palette == "susy": 
         stops = array.array('d', [0.00, 0.34, 0.61, 0.84, 1.00])
         red   = array.array('d', [0.50, 0.50, 1.00, 1.00, 1.00])
