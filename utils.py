@@ -153,6 +153,8 @@ def get_brightdefault_colors():
 def get_default_colors():
     return [r.kSpring-6, r.kAzure+7, r.kRed-7, r.kOrange-2, r.kCyan-7, r.kMagenta-7, r.kTeal+6, r.kGray+2]
 
+def get_brightdefault_colors():
+    return [r.kBlack, r.kAzure, r.kRed, r.kGreen+1, r.kOrange-2, r.kMagenta]
 
 def hsv_to_rgb(h, s, v, scale=255.):
     """
