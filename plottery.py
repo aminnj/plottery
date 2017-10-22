@@ -131,8 +131,12 @@ class Options(object):
             "hist_line_black": { "type": "Boolean", "desc": "Black lines for histograms", "default": False, "kinds": ["1dratio"], },
             "hist_disable_xerrors": { "type": "Boolean", "desc": "Disable the x-error bars on data for 1D hists", "default": True, "kinds": ["1dratio"], },
 
-            "extra_text": { "type": "List", "desc": "list of strings for textboxes", "default": [], "kinds": [ "1dratio"], },
-            "extra_text_xpos": { "type": "Float", "desc": "NDC x position (0 to 1) for extra text", "default": 0.3, "kinds": [ "1dratio"], },
+            "extra_text": { "type": "List", "desc": "list of strings for textboxes", "default": [], "kinds": [ "1dratio","graph"], },
+            "extra_text_size": { "type": "Float", "desc": "size for extra text", "default": 0.04, "kinds": [ "1dratio","graph"], },
+            "extra_text_xpos": { "type": "Float", "desc": "NDC x position (0 to 1) for extra text", "default": 0.3, "kinds": [ "1dratio","graph"], },
+            "extra_text_ypos": { "type": "Float", "desc": "NDC y position (0 to 1) for extra text", "default": 0.87, "kinds": [ "1dratio","graph"], },
+
+            "extra_lines": { "type": "List", "desc": "list of 4-tuples (x1,y1,x2,y2) for lines", "default": [], "kinds": [ "1dratio","graph"], },
 
             # Fun
             "us_flag": { "type": "Boolean", "desc": "show the US flag in the corner", "default": False, "kinds": ["1dratio","graph","2d"], },
@@ -764,9 +768,22 @@ def draw_extra_stuff(c1, opts):
         t.SetTextAlign(12)
         t.SetTextFont(42)
         t.SetTextColor(r.kBlack)
-        t.SetTextSize(0.04)
+        # t.SetTextSize(0.04)
+        t.SetTextSize(opts["extra_text_size"])
         for itext, text in enumerate(opts["extra_text"]):
-            t.DrawLatex(opts["extra_text_xpos"],0.87-itext*0.05,text)
+            t.DrawLatex(opts["extra_text_xpos"],opts["extra_text_ypos"]-itext*5./4*t.GetTextSize(),text)
+
+    if opts["extra_lines"]:
+        for iline,lcoords in enumerate(opts["extra_lines"]):
+            if len(lcoords) != 4:
+                print ">>> Malformed line coordinates (length should be 4 but is {})".format(len(lcoords))
+                continue
+
+            line = r.TLine()
+            line.SetLineColor(r.kGray+2)
+            line.SetLineWidth(1)
+            line.SetLineStyle(2)
+            line.DrawLine(*lcoords)
 
 
 def save(c1, opts):
