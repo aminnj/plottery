@@ -36,6 +36,8 @@ Note that the following list was obtained _verbatim_ with
 ```bash
 python -c "__import__('plottery').Options().usage()"
 ```
+To update the README in Vim go to the below line and type: jdGyy:@"<CR>
+:r!python -c "__import__('plottery').Options().usage()"
 * `bin_text_format` [String]
     format string for text in TH2 bins (default: ".1f")
 * `bin_text_format_smart` [String]
@@ -44,8 +46,38 @@ python -c "__import__('plottery').Options().usage()"
     size of text in bins (TH2::SetMarkerSize) (default: 1.7)
 * `bin_text_smart` [Boolean]
     change bin text color for aesthetics (default: False)
+* `bkg_err_fill_color` [Int]
+    Error shade color (default: None)
+* `bkg_err_fill_style` [Int]
+    Error shade draw style (default: 1001)
 * `bkg_sort_method` [Boolean]
     how to sort background stack using integrals: 'unsorted', 'ascending', or 'descending' (default: "ascending")
+* `canvas_height` [Int]
+    height of TCanvas in pixel (default: None)
+* `canvas_main_bottommargin` [Float]
+    ratio plot bottom margin (default: None)
+* `canvas_main_leftmargin` [Float]
+    ratio plot left margin (default: None)
+* `canvas_main_rightmargin` [Float]
+    ratio plot right margin (default: None)
+* `canvas_main_topmargin` [Float]
+    ratio plot top margin (default: None)
+* `canvas_main_y1` [Float]
+    main plot tpad y1 (default: 0.18)
+* `canvas_ratio_bottommargin` [Float]
+    ratio plot bottom margin (default: None)
+* `canvas_ratio_leftmargin` [Float]
+    ratio plot left margin (default: None)
+* `canvas_ratio_rightmargin` [Float]
+    ratio plot right margin (default: None)
+* `canvas_ratio_topmargin` [Float]
+    ratio plot top margin (default: None)
+* `canvas_ratio_y2` [Float]
+    ratio tpad y2 (default: 0.19)
+* `canvas_tick_one_side` [Boolean]
+    ratio plot left margin (default: False)
+* `canvas_width` [Int]
+    width of TCanvas in pixel (default: None)
 * `cms_label` [String]
     E.g., 'Preliminary'; default hides label (default: None)
 * `do_stack` [Boolean]
@@ -54,10 +86,16 @@ python -c "__import__('plottery').Options().usage()"
     hist draw option (default: "colz")
 * `draw_points` [Boolean]
     draw points instead of fill (default: False)
+* `extra_lines` [List]
+    list of 4-tuples (x1,y1,x2,y2) for lines (default: [])
 * `extra_text` [List]
     list of strings for textboxes (default: [])
+* `extra_text_size` [Float]
+    size for extra text (default: 0.04)
 * `extra_text_xpos` [Float]
     NDC x position (0 to 1) for extra text (default: 0.3)
+* `extra_text_ypos` [Float]
+    NDC y position (0 to 1) for extra text (default: 0.87)
 * `hist_disable_xerrors` [Boolean]
     Disable the x-error bars on data for 1D hists (default: True)
 * `hist_line_black` [Boolean]
@@ -68,8 +106,12 @@ python -c "__import__('plottery').Options().usage()"
     easy alignment of TLegend. String containing two words from: bottom, top, left, right (default: "")
 * `legend_border` [Boolean]
     show legend border? (default: True)
+* `legend_column_separation` [Float]
+    column separation size (default: None)
 * `legend_coordinates` [List]
     4 elements specifying TLegend constructor coordinates (default: [0.63, 0.67, 0.93, 0.87])
+* `legend_datalabel` [String]
+    label for the data histogram in the legend (default: "Data")
 * `legend_ncolumns` [Int]
     number of columns in the legend (default: 1)
 * `legend_opacity` [Float]
@@ -98,8 +140,14 @@ python -c "__import__('plottery').Options().usage()"
     show chi2 probability for ratio (default: False)
 * `ratio_horizontal_lines` [List]
     list of y-values to draw horizontal line (default: [1.0])
+* `ratio_label_size` [Float]
+    X-axis label size (default: 0.0)
 * `ratio_name` [String]
     name of ratio pad (default: "Data/MC")
+* `ratio_name_offset` [Float]
+    offset to the name of ratio pad (default: 0.25)
+* `ratio_name_size` [Float]
+    size of the name on the ratio pad (e.g. data/MC) (default: 0.2)
 * `ratio_ndivisions` [Int]
     SetNdivisions integer for ratio (default: 505)
 * `ratio_numden_indices` [List]
@@ -110,6 +158,18 @@ python -c "__import__('plottery').Options().usage()"
     show numbers for pulls, and mean/sigma (default: True)
 * `ratio_range` [List]
     pair for min and max y-value for ratio; default auto re-sizes to 3 sigma range (default: [-1, -1])
+* `ratio_tick_length_scale` [Float]
+    Tick length scale of ratio pads (default: 1.0)
+* `ratio_xaxis_label_offset` [Float]
+    offset to the x-axis labels (numbers) (default: None)
+* `ratio_xaxis_title` [String]
+    X-axis label (default: "")
+* `ratio_xaxis_title_offset` [FLoat]
+    X-axis label offset (default: None)
+* `ratio_xaxis_title_size` [Float]
+    X-axis label size (default: None)
+* `ratio_yaxis_label_offset` [Float]
+    offset to the y-axis labels (numbers) (default: None)
 * `show_bkg_errors` [Boolean]
     show error bar for background stack (default: False)
 * `show_bkg_smooth` [Boolean]
@@ -122,6 +182,10 @@ python -c "__import__('plottery').Options().usage()"
     Specify flag location with (x pos, y pos, size) (default: [0.68, 0.96, 0.06])
 * `xaxis_label` [String]
     label for x axis (default: "")
+* `xaxis_label_offset_scale` [Float]
+    x axis tickmark labels offset (default: 1.0)
+* `xaxis_label_size_scale` [Float]
+    size of fonts for x axis (default: 1.0)
 * `xaxis_log` [Boolean]
     log scale x-axis (default: False)
 * `xaxis_moreloglabels` [Boolean]
@@ -130,8 +194,18 @@ python -c "__import__('plottery').Options().usage()"
     don't show exponents in logscale labels for x axis (default: False)
 * `xaxis_range` [List]
     2 elements to specify x axis range (default: [])
+* `xaxis_tick_length_scale` [Float]
+    x axis tickmark length scale (default: 1.0)
+* `xaxis_title_offset` [Float]
+    offset of x axis title (default: None)
+* `xaxis_title_size` [Float]
+    size of fonts for x axis title (default: None)
 * `yaxis_label` [String]
     label for y axis (default: "Events")
+* `yaxis_label_offset_scale` [Float]
+    y axis tickmark labels offset (default: 1.0)
+* `yaxis_label_size_scale` [Float]
+    size of fonts for y axis (default: 1.0)
 * `yaxis_log` [Boolean]
     log scale y-axis (default: False)
 * `yaxis_moreloglabels` [Boolean]
@@ -140,8 +214,16 @@ python -c "__import__('plottery').Options().usage()"
     don't show exponents in logscale labels for y axis (default: False)
 * `yaxis_range` [List]
     2 elements to specify y axis range (default: [])
+* `yaxis_tick_length_scale` [Float]
+    y axis tickmark length scale (default: 1.0)
+* `yaxis_title_offset` [Float]
+    offset of y axis title (default: None)
+* `yaxis_title_size` [Float]
+    size of fonts for y axis title (default: None)
 * `zaxis_label` [String]
     label for z axis (default: "")
+* `zaxis_label_size_scale` [Float]
+    size of fonts for z axis (default: 1.0)
 * `zaxis_log` [Boolean]
     log scale z-axis (default: False)
 * `zaxis_moreloglabels` [Boolean]
