@@ -11,11 +11,32 @@ r.gROOT.SetBatch(1) # please don't open a window
 r.gErrorIgnoreLevel = r.kError # ignore Info/Warnings
 
 class Options(object):
+    """
+    The Options object is just a nice wrapper around a dictionary
+    with default values, some arithmetic, and warnings
+    >>> import plottery as ply
+    >>> # Passing d_opts1,d_opts2, or opts1 as the `options` kwarg to a plot
+    >>> # function will have the same effect
+    >>> d_opts1 = { "output_name": "test.pdf", "blah": 1, }
+    >>> d_opts2 = { "blah2": 2, }
+    >>> opts1 = ply.Options(d_opts1)
+    >>> # You can add a dict or another Options object to an Options object
+    >>> # to add new options or modify current ones
+    >>> print opts1+d_opts2
+    >>> print opts1+ply.Options(d_opts2)
+    """
 
     def __init__(self, options={}, kind=None):
 
-        self.options = options
-        self.kind = kind
+        # if we pass in a plain dict, then do the usual
+        # thing, otherwise make a new options object
+        # if an Options object is passed in
+        if type(options) is dict:
+            self.options = options
+            self.kind = kind
+        else:
+            self.options = options.options
+            self.kind = options.kind
 
         self.recognized_options = {
 
@@ -206,6 +227,15 @@ class Options(object):
 
     def __contains__(self, key):
         return key in self.options
+
+    def __add__(self, other):
+        new_opts = {}
+        new_opts.update(self.options)
+        if type(other) is dict:
+            new_opts.update(other)
+        else:
+            new_opts.update(other.options)
+        return Options(new_opts,kind=self.kind)
 
 
 def plot_graph(valpairs,colors=[],legend_labels=[],draw_styles=[],options={}):
