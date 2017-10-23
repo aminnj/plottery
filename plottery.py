@@ -168,6 +168,7 @@ class Options(object):
             "output_name": { "type": "String", "desc": "output file name/path", "default": "plot.pdf", "kinds": ["1dratio","graph","2d"], },
             "output_ic": { "type": "Boolean", "desc": "run `ic` (imgcat) on output", "default": False, "kinds": ["1dratio","graph","2d"], },
             "output_jsroot": { "type": "Boolean", "desc": "output .json for jsroot", "default": False, "kinds": ["1dratio","graph","2d"], },
+            "output_diff_previous": { "type": "Boolean", "desc": "diff the new output file with the previous", "default": False, "kinds": ["1dratio","graph","2d"], },
 
         }
 
@@ -826,8 +827,22 @@ def save(c1, opts):
         print ">>> Instead of crashing, I'll do you a solid and make it".format(dirname)
         os.system("mkdir -p {}".format(dirname))
 
+    orig_fname = None
+    if opts["output_diff_previous"]:
+        if os.path.exists(fname):
+            orig_fname = fname.replace(".pdf","_orig.pdf")
+            os.system("mv {} {}".format(fname, orig_fname))
+
     print ">>> Saving {}".format(fname)
     c1.SaveAs(fname)
+
+    if opts["output_diff_previous"]:
+        fname_diff = "diff.png"
+        utils.diff_images(orig_fname,fname, output=fname_diff)
+        os.system("ic {}".format(fname_diff))
+        if orig_fname:
+            os.system("rm {}".format(orig_fname))
+
     if opts["output_ic"]:
         os.system("ic {}".format(fname))
     if opts["output_jsroot"]:

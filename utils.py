@@ -633,17 +633,21 @@ def diff_images(fname1, fname2, output="diff.png"):
             os.system(conversion_cmd.format(density=75, inname=fname_in, outname=fname_out))
             new_fnames.append(fname_out)
     if len(new_fnames) == 2: fname1, fname2 = new_fnames
-    img1 = plt.imread(fname1)[::2,::2] # downsample by factor of 2
-    img2 = plt.imread(fname2)[::2,::2]
+    # img1 = plt.imread(fname1)[::2,::2] # downsample by factor of 2
+    # img2 = plt.imread(fname2)[::2,::2]
+    img1 = plt.imread(fname1)
+    img2 = plt.imread(fname2)
 
     # Calculate the absolute difference on each channel separately
     error_r = np.fabs(np.subtract(img2[:,:,0], img1[:,:,0]))
     error_g = np.fabs(np.subtract(img2[:,:,1], img1[:,:,1]))
     error_b = np.fabs(np.subtract(img2[:,:,2], img1[:,:,2]))
 
-    # Calculate the maximum error for each pixel
-    lum_img = np.maximum(np.maximum(error_r, error_g), error_b)
+    lum_img = np.sqrt(error_r*error_r + error_g+error_g + error_b*error_b)/np.sqrt(3)
+
+    # # # Calculate the maximum error for each pixel
+    # lum_img = np.maximum(np.maximum(error_r, error_g), error_b)
 
     # plt.set_cmap('Spectral')
     plt.set_cmap('gray')
-    plt.imsave(output,lum_img)
+    plt.imsave(output,-lum_img)

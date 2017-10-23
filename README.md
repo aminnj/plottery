@@ -128,6 +128,8 @@ To update the README in Vim go to the below line and type: jdGyy:@"<CR>
     Unit for lumi label (default: "fb")
 * `lumi_value` [String]
     E.g., 35.9; default hides lumi label (default: "")
+* `output_diff_previous` [Boolean]
+    diff the new output file with the previous (default: False)
 * `output_ic` [Boolean]
     run `ic` (imgcat) on output (default: False)
 * `output_jsroot` [Boolean]

@@ -93,6 +93,7 @@ for which_test in which_tests:
                     "output_ic": True,
                     "us_flag": True,
                     # "output_jsroot": True,
+                    # "output_diff_previous": True,
                     }
                 )
 
