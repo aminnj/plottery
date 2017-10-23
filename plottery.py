@@ -57,7 +57,7 @@ class Options(object):
 
             # Legend
             "legend_coordinates": { "type": "List", "desc": "4 elements specifying TLegend constructor coordinates", "default": [0.63,0.67,0.93,0.87], "kinds": ["1dratio","graph"], },
-            "legend_alignment": { "type": "Boolean", "desc": "easy alignment of TLegend. String containing two words from: bottom, top, left, right", "default": "", "kinds": ["1dratio","graph"], },
+            "legend_alignment": { "type": "String", "desc": "easy alignment of TLegend. String containing two words from: bottom, top, left, right", "default": "", "kinds": ["1dratio","graph"], },
             "legend_smart": { "type": "Boolean", "desc": "Smart alignment of legend to prevent overlaps", "default": True, "kinds": ["1dratio"], },
             "legend_border": { "type": "Boolean", "desc": "show legend border?", "default": True, "kinds": ["1dratio","graph"], },
             "legend_scalex": { "type": "Float", "desc": "scale width of legend by this factor", "default": 1, "kinds": ["1dratio","graph"], },
@@ -115,6 +115,7 @@ class Options(object):
             "ratio_pull_numbers": { "type": "Boolean", "desc": "show numbers for pulls, and mean/sigma", "default": True, "kinds": ["1dratio"], },
             "ratio_ndivisions": { "type": "Int", "desc": "SetNdivisions integer for ratio", "default": 505, "kinds": ["1dratio"], },
             "ratio_numden_indices": { "type": "List", "desc": "Pair of numerator and denominator histogram indices (from `bgs`) for ratio", "default": None, "kinds": ["1dratio"], },
+            "ratio_binomial_errors": { "type": "Boolean", "desc": "Use binomial error propagation when computing ratio eror bars", "default": False, "kinds": ["1dratio"], },
             "ratio_xaxis_title": { "type": "String", "desc": "X-axis label", "default": "", "kinds": ["1dratio"], },
             "ratio_xaxis_title_size": { "type": "Float", "desc": "X-axis label size", "default": None, "kinds": ["1dratio"], },
             "ratio_xaxis_title_offset": { "type": "FLoat", "desc": "X-axis label offset", "default": None, "kinds": ["1dratio"], },
@@ -388,7 +389,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
 
     # sort backgrounds, but make sure all parameters have same length
     if len(colors) < len(bgs):
-        print ">>> Provided only {} colors for {} backgrounds, so using defalt palette".format(len(colors),len(bgs))
+        print ">>> Provided only {} colors for {} backgrounds, so using default palette".format(len(colors),len(bgs))
         colors = utils.get_default_colors()
     if len(legend_labels) < len(bgs):
         print ">>> Provided only {} legend_labels for {} backgrounds, so using hist titles".format(len(legend_labels),len(bgs))
@@ -543,10 +544,10 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
             denom = sum(bgs,denom)
 
         ratio = numer.Clone("ratio")
-        ratio.Divide(denom)
-
-        def get_err_div(num,den,enum,eden):
-            return ((enum/den)**2.0+(eden*num/(den)**2.0)**2.0)**0.5
+        if opts["ratio_binomial_errors"]:
+            ratio.Divide(numer,denom,1,1,"b")
+        else:
+            ratio.Divide(denom)
 
         if opts["ratio_pull"]:
             for ibin in range(1,ratio.GetNbinsX()+1):
