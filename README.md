@@ -102,7 +102,7 @@ To update the README in Vim go to the below line and type: jdGyy:@"<CR>
     Black lines for histograms (default: False)
 * `hist_line_none` [Boolean]
     No lines for histograms, only fill (default: False)
-* `legend_alignment` [Boolean]
+* `legend_alignment` [String]
     easy alignment of TLegend. String containing two words from: bottom, top, left, right (default: "")
 * `legend_border` [Boolean]
     show legend border? (default: True)
@@ -136,6 +136,8 @@ To update the README in Vim go to the below line and type: jdGyy:@"<CR>
     output file name/path (default: "plot.pdf")
 * `palette_name` [String]
     color palette: 'default', 'rainbow', 'susy', etc. (default: "default")
+* `ratio_binomial_errors` [Boolean]
+    Use binomial error propagation when computing ratio eror bars (default: False)
 * `ratio_chi2prob` [Boolean]
     show chi2 probability for ratio (default: False)
 * `ratio_horizontal_lines` [List]
