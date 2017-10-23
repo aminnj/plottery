@@ -1,4 +1,5 @@
 import ROOT as r
+import os
 from math import log
 import random
 from array import array
@@ -612,3 +613,37 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
         print ">>> Tried to reduce legend width, height {} times, but still couldn't find a good position!".format(niters)
 
 
+def diff_images(fname1, fname2, output="diff.png"):
+    """
+    Creates a file `output` that represents a diff of two input images
+    `fname1` and `fname`. If these are .pdf, they will be first converted to .png.
+    Example:
+    >>> utils.diff_images("examples/test1.pdf", "examples/test3.pdf", output="diff.png")
+    >>> os.system("ic diff.png")
+    """
+    import numpy as np
+    import matplotlib.pylab as plt
+    conversion_cmd = "gs -q -sDEVICE=pngalpha -o {outname} -sDEVICE=pngalpha -dUseCropBox -r{density} {inname}"
+    # conversion_cmd = "convert -density {density} -trim {inname} -fuzz 1% {outname}"
+    new_fnames = []
+    for fname in [fname1, fname2]:
+        if fname.rsplit(".",1)[-1] == "pdf":
+            fname_in = fname
+            fname_out = fname.replace(".pdf",".png")
+            os.system(conversion_cmd.format(density=75, inname=fname_in, outname=fname_out))
+            new_fnames.append(fname_out)
+    if len(new_fnames) == 2: fname1, fname2 = new_fnames
+    img1 = plt.imread(fname1)[::2,::2] # downsample by factor of 2
+    img2 = plt.imread(fname2)[::2,::2]
+
+    # Calculate the absolute difference on each channel separately
+    error_r = np.fabs(np.subtract(img2[:,:,0], img1[:,:,0]))
+    error_g = np.fabs(np.subtract(img2[:,:,1], img1[:,:,1]))
+    error_b = np.fabs(np.subtract(img2[:,:,2], img1[:,:,2]))
+
+    # Calculate the maximum error for each pixel
+    lum_img = np.maximum(np.maximum(error_r, error_g), error_b)
+
+    # plt.set_cmap('Spectral')
+    plt.set_cmap('gray')
+    plt.imsave(output,lum_img)
