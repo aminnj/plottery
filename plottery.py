@@ -7,7 +7,8 @@ from array import array
 import math
 from itertools import cycle
 
-r.gROOT.SetBatch(1) # please don't open a window
+r.gROOT.SetBatch(1) # please don't open an Xwindow
+r.gEnv.SetValue("RooFit.Banner", "0") # turn off annoying RooFit banner
 r.gErrorIgnoreLevel = r.kError # ignore Info/Warnings
 
 class Options(object):
