@@ -606,7 +606,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
         for yval in opts["ratio_horizontal_lines"]:
             line.DrawLine(ratio.GetXaxis().GetBinLowEdge(1),yval,ratio.GetXaxis().GetBinUpEdge(ratio.GetNbinsX()),yval)
 
-        if opts["ratio_chi2prob"] or opts["ratio_pull_numbers"]:
+        if opts["ratio_chi2prob"] or (opts["ratio_pull"] and opts["ratio_pull_numbers"]):
             oldpad = r.gPad
             c1.cd()
             t = r.TLatex()
