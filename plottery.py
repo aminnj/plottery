@@ -430,7 +430,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
             bg.SetLineWidth(1)
             bg.SetMarkerColor(colors[ibg])
             bg.SetMarkerSize(0)
-            bg.SetFillColorAlpha(colors[ibg],1 if opts["do_stack"] else 0.5)
+            bg.SetFillColorAlpha(colors[ibg],1 if opts["do_stack"] else 0.4)
             if opts["draw_points"]:
                 bg.SetLineWidth(3)
                 bg.SetMarkerStyle(20)
@@ -618,13 +618,16 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
             to_show = ""
             if opts["ratio_chi2prob"]:
                 chi2 = 0.
+                ndof = 0
                 for ibin in range(1,ratio.GetNbinsX()+1):
                     err2 = ratio.GetBinError(ibin)**2.
+                    if err2 < 1.e-6: continue
                     if syst: 
                         err2 += ratio_syst.GetBinError(ibin)**2.
                     val = ratio.GetBinContent(ibin)
                     chi2 += (val-1.)**2./err2
-                prob = r.TMath.Prob(chi2,ratio.GetNbinsX()-1)
+                    ndof += 1
+                prob = r.TMath.Prob(chi2,ndof-1)
                 to_show = "P(#chi^{{2}}/ndof) = {:.2f}".format(prob)
             if opts["ratio_pull"] and opts["ratio_pull_numbers"]:
                 mean, sigma, vals = utils.get_mean_sigma_1d_yvals(ratio)
@@ -688,7 +691,7 @@ def draw_percentageinbox(legend, bgs, sigs, opts, has_data=False):
             icoord -= 1
         if icoord >= len(bgs): continue # don't do signals
         bg = all_entries[icoord]
-        percentage = int(100.0*bg.Integral()/total_integral)
+        percentage = int(100.0*bg.Integral()*(1.+1.e-6)/total_integral)
         color = r.gROOT.GetColor(bg.GetFillColor())
         red = color.GetRed()
         green = color.GetGreen()

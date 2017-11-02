@@ -274,6 +274,8 @@ def interpolate_colors_rgb(first, second, ndiv, _persist=[]):
 def draw_flag(c1, cx, cy, size, _persist=[]):
     """
     Draw US flag
+    # NOTE: May cause segfaults when flags are drawn
+    # on more than 2 plots?
     """
     c1.cd();
     aspect_ratio = 1.33 # c1.GetWindowWidth()/c1.GetWindowHeight();
