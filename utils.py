@@ -397,6 +397,27 @@ def move_in_overflows(h):
     h.SetBinError(1, (e_first**2.+e_under**2.)**0.5)
     h.SetBinError(nbins, (e_last**2.+e_over**2.)**0.5)
 
+def fill_fast(hist, xvals, yvals=None, weights=None):
+    """
+    partially stolen from root_numpy implementation
+    using for loop with TH1::Fill() is slow, so use
+    numpy to convert array to C-style array, and then FillN
+    """
+    import numpy as np
+    xvals = np.asarray(xvals, dtype=np.double)
+    two_d = False
+    if yvals is not None:
+        two_d = True
+        yvals = np.asarray(yvals, dtype=np.double)
+    if weights is None:
+        weights = np.ones(len(xvals))
+    else:
+        weights = np.asarray(weights, dtype=np.double)
+    if not two_d:
+        hist.FillN(len(xvals),xvals,weights)
+    else:
+        print xvals, yvals
+        hist.FillN(len(xvals),xvals,yvals,weights)
 
 def draw_smart_2d_bin_labels(hist,opts):
     """
