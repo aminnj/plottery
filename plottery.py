@@ -349,7 +349,7 @@ def get_legend(opts):
     return legend
 
 
-def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],syst=None,options={}):
+def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],syst=None,options={},_persist=[]):
 
     opts = Options(options, kind="1dratio")
 
@@ -360,6 +360,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
         width = opts["canvas_width"]
         height = opts["canvas_height"]
         c1 = r.TCanvas("c1", "c1", width, height)
+    _persist.append(c1) # need this to avoid segfault with garbage collection
 
     has_data = data and data.InheritsFrom(r.TH1.Class())
     do_ratio = has_data or opts["ratio_numden_indices"]
