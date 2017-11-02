@@ -416,7 +416,6 @@ def fill_fast(hist, xvals, yvals=None, weights=None):
     if not two_d:
         hist.FillN(len(xvals),xvals,weights)
     else:
-        print xvals, yvals
         hist.FillN(len(xvals),xvals,yvals,weights)
 
 def draw_smart_2d_bin_labels(hist,opts):
