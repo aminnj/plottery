@@ -648,10 +648,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
 
         pad_main.cd()
 
-
     save(c1, opts)
-
-    utils.hold_pointers_to_implicit_members(c1)
 
     return c1
 

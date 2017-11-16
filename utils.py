@@ -252,16 +252,6 @@ def get_stack_maximum(data, stack, opts={}):
     else:
         return scalefact*stack.GetMaximum()
 
-def hold_pointers_to_implicit_members(obj,_persist=[]):
-    """
-    Save primitives for object so that they don't get deleted when
-    out of scope (useful for returning the canvas from a function,
-    for example)
-    https://root-forum.cern.ch/t/switch-off-python-memory-management-alltogether/9076/4
-    """
-    for prim in obj.GetListOfPrimitives():
-        _persist.append(prim)
-
 def compute_darkness(r,g,b):
     """
     Compute darkness := 1 - luminance, given RGB
