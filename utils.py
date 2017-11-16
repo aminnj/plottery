@@ -554,6 +554,11 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
             yval += 1.0*data.GetBinError(ibin)
         yfrac = (yval - ymin) / (ymax - ymin)
         xfrac = (xval - xmin) / (xmax - xmin) 
+
+        if opts["yaxis_log"]:
+            ymin = max(ymin,0.1)
+            yfrac = 1.*(log(min(yval,ymax))-log(ymin))/(log(ymax)-log(ymin))
+
         # convert from 0..1 inside plotting pane, to pad coordinates (stupid margins)
         xcoord = xfrac * (1. - r.gPad.GetLeftMargin() - r.gPad.GetRightMargin()) + r.gPad.GetLeftMargin()
         ycoord = yfrac * (1. - r.gPad.GetTopMargin() - r.gPad.GetBottomMargin()) + r.gPad.GetBottomMargin()
