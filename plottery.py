@@ -394,6 +394,12 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     if len(colors) < len(bgs):
         print ">>> Provided only {} colors for {} backgrounds, so using default palette".format(len(colors),len(bgs))
         colors = utils.get_default_colors()
+        if len(colors) < len(bgs):
+            print ">>> Only {} default colors for {} backgrounds, so {} of them will be black.".format(len(colors),len(bgs),len(bgs)-len(colors))
+            for ibg in range(len(bgs)-len(colors)):
+                colors.append(r.kBlack)
+
+
     if len(legend_labels) < len(bgs):
         print ">>> Provided only {} legend_labels for {} backgrounds, so using hist titles".format(len(legend_labels),len(bgs))
         for ibg in range(len(bgs)-len(legend_labels)):
@@ -463,10 +469,14 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     # returns the actual maximum (even though that's what we set it to!) because
     # thstack multiplies the max by 1.05??? Odd
     # So here, we take into account that scaling for the rest of this function
-    ymax = utils.get_stack_maximum(data,stack,opts)
+    ymin, ymax = 0., utils.get_stack_maximum(data,stack,opts)
     stack.SetMaximum(ymax)
     stack.Draw(drawopt)
     ymax = 1.05*ymax if opts["do_stack"] else 1.00*ymax
+    if opts["yaxis_range"]:
+        stack.SetMinimum(opts["yaxis_range"][0])
+        stack.SetMaximum(opts["yaxis_range"][1])
+        ymin, ymax = opts["yaxis_range"]
 
     if syst:
         # Turn relative bin errors from syst into drawable histogram
@@ -525,7 +535,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     draw_extra_stuff(pad_main, opts)
 
     if opts["legend_smart"]:
-        utils.smart_legend(legend, bgs, data=data, ymax=ymax, opts=opts)
+        utils.smart_legend(legend, bgs, data=data, ymin=ymin, ymax=ymax, opts=opts)
     legend.Draw()
     if opts["legend_percentageinbox"]:
         draw_percentageinbox(legend, bgs, sigs, opts, has_data=has_data)
@@ -641,6 +651,8 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
 
     save(c1, opts)
 
+    utils.hold_pointers_to_implicit_members(c1)
+
     return c1
 
 
@@ -723,7 +735,8 @@ def handle_axes(c1, obj, opts):
     if opts["xaxis_title_offset"]: obj.GetXaxis().SetTitleOffset(opts["xaxis_title_offset"])
 
     obj.GetYaxis().SetTitle(opts["yaxis_label"])
-    if opts["yaxis_range"]: obj.GetYaxis().SetRangeUser(*opts["yaxis_range"])
+    if opts["yaxis_range"]:
+        obj.GetYaxis().SetRangeUser(*opts["yaxis_range"])
     if opts["yaxis_log"]:
         c1.SetLogy(1)
         obj.GetYaxis().SetMoreLogLabels(opts["yaxis_moreloglabels"])
@@ -733,7 +746,6 @@ def handle_axes(c1, obj, opts):
     if opts["yaxis_tick_length_scale"]: obj.GetYaxis().SetTickLength(obj.GetYaxis().GetTickLength() * opts["yaxis_tick_length_scale"])
     if opts["yaxis_title_size"]: obj.GetYaxis().SetTitleSize(opts["yaxis_title_size"])
     if opts["yaxis_title_offset"]: obj.GetYaxis().SetTitleOffset(opts["yaxis_title_offset"])
-
     if hasattr(obj, "GetZaxis"):
         obj.GetZaxis().SetTitle(opts["zaxis_label"])
         if opts["zaxis_range"]: obj.GetZaxis().SetRangeUser(*opts["zaxis_range"])

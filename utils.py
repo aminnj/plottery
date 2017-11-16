@@ -152,7 +152,7 @@ def get_brightdefault_colors():
     return [r.kBlack, r.kAzure, r.kRed, r.kGreen+1, r.kOrange-2, r.kMagenta]
 
 def get_default_colors():
-    return [r.kSpring-6, r.kAzure+7, r.kRed-7, r.kOrange-2, r.kCyan-7, r.kMagenta-7, r.kTeal+6, r.kGray+2]
+    return [r.kSpring-6, r.kAzure+7, r.kRed-7, r.kOrange-2, r.kCyan-7, r.kMagenta-7, r.kTeal+6, r.kGray+2, r.kGray, r.kBlue-2, r.kRed-2]
 
 def get_brightdefault_colors():
     return [r.kBlack, r.kAzure, r.kRed, r.kGreen+1, r.kOrange-2, r.kMagenta]
@@ -251,6 +251,16 @@ def get_stack_maximum(data, stack, opts={}):
         return scalefact*max(data.GetMaximum(),stack.GetMaximum())
     else:
         return scalefact*stack.GetMaximum()
+
+def hold_pointers_to_implicit_members(obj,_persist=[]):
+    """
+    Save primitives for object so that they don't get deleted when
+    out of scope (useful for returning the canvas from a function,
+    for example)
+    https://root-forum.cern.ch/t/switch-off-python-memory-management-alltogether/9076/4
+    """
+    for prim in obj.GetListOfPrimitives():
+        _persist.append(prim)
 
 def compute_darkness(r,g,b):
     """
@@ -523,6 +533,8 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
     else:
         for ibin in range(1,allbgs.GetNbinsX()+1):
             allbgs.SetBinContent(ibin, max(hist.GetBinContent(ibin) for hist in bgs))
+            if opts["draw_points"]:
+                allbgs.SetBinContent(ibin, max(hist.GetBinContent(ibin)+hist.GetBinError(ibin) for hist in bgs))
 
     if not ymax:
         ymax = allbgs.GetMaximum()
