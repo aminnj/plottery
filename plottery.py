@@ -101,6 +101,11 @@ class Options(object):
             "yaxis_noexponents": { "type": "Boolean", "desc": "don't show exponents in logscale labels for y axis", "default": False, "kinds": ["1dratio","graph","2d"], },
             "zaxis_noexponents": { "type": "Boolean", "desc": "don't show exponents in logscale labels for z axis", "default": False, "kinds": ["1dratio","graph","2d"], },
 
+            "yaxis_exponent_offset": { "type": "Float", "desc": "offset x10^n left or right", "default": 0.0, "kinds": ["1dratio"], },
+
+            "yaxis_ndivisions": { "type": "Int", "desc": "SetNdivisions integer for y-axis", "default": 510, "kinds": ["1dratio", "graph", "2d"], },
+            "xaxis_ndivisions": { "type": "Int", "desc": "SetNdivisions integer for x-axis", "default": 510, "kinds": ["1dratio", "graph", "2d"], },
+
             "xaxis_range": { "type": "List", "desc": "2 elements to specify x axis range", "default": [], "kinds": ["1dratio","graph","2d"], },
             "yaxis_range": { "type": "List", "desc": "2 elements to specify y axis range", "default": [], "kinds": ["1dratio","graph","2d"], },
             "zaxis_range": { "type": "List", "desc": "2 elements to specify z axis range", "default": [], "kinds": ["2d"], },
@@ -144,6 +149,8 @@ class Options(object):
             "show_bkg_smooth": { "type": "Boolean", "desc": "show smoothed background stack", "default": False, "kinds": ["1dratio"], },
             "bkg_sort_method": { "type": "Boolean", "desc": "how to sort background stack using integrals: 'unsorted', 'ascending', or 'descending'", "default": 'ascending', "kinds": ["1dratio"], },
             "no_ratio": { "type": "Boolean", "desc": "do not draw ratio plot", "default": False, "kinds": ["1dratio"], },
+
+            "max_digits": { "type": "Int", "desc": "integer for max digits", "default": 5, "kinds" : ["1dratio", "graph", "2d"], },
 
 
             "bin_text_size": { "type": "Float", "desc": "size of text in bins (TH2::SetMarkerSize)", "default": 1.7, "kinds": ["2d"], },
@@ -744,6 +751,10 @@ def handle_axes(c1, obj, opts):
     if opts["yaxis_tick_length_scale"]: obj.GetYaxis().SetTickLength(obj.GetYaxis().GetTickLength() * opts["yaxis_tick_length_scale"])
     if opts["yaxis_title_size"]: obj.GetYaxis().SetTitleSize(opts["yaxis_title_size"])
     if opts["yaxis_title_offset"]: obj.GetYaxis().SetTitleOffset(opts["yaxis_title_offset"])
+    if opts["yaxis_exponent_offset"]: r.TGaxis.SetExponentOffset(opts["yaxis_exponent_offset"])
+    if opts["yaxis_ndivisions"]: obj.GetYaxis().SetNdivisions(opts["yaxis_ndivisions"])
+    if opts["xaxis_ndivisions"]: obj.GetXaxis().SetNdivisions(opts["xaxis_ndivisions"])
+    if opts["max_digits"]: r.TGaxis.SetMaxDigits(opts["max_digits"])
     if hasattr(obj, "GetZaxis"):
         obj.GetZaxis().SetTitle(opts["zaxis_label"])
         if opts["zaxis_range"]: obj.GetZaxis().SetRangeUser(*opts["zaxis_range"])
