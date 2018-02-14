@@ -143,6 +143,7 @@ class Options(object):
             "show_bkg_errors": { "type": "Boolean", "desc": "show error bar for background stack", "default": False, "kinds": ["1dratio"], },
             "show_bkg_smooth": { "type": "Boolean", "desc": "show smoothed background stack", "default": False, "kinds": ["1dratio"], },
             "bkg_sort_method": { "type": "Boolean", "desc": "how to sort background stack using integrals: 'unsorted', 'ascending', or 'descending'", "default": 'ascending', "kinds": ["1dratio"], },
+            "no_ratio": { "type": "Boolean", "desc": "do not draw ratio plot", "default": False, "kinds": ["1dratio"], },
 
 
             "bin_text_size": { "type": "Float", "desc": "size of text in bins (TH2::SetMarkerSize)", "default": 1.7, "kinds": ["2d"], },
@@ -363,7 +364,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     _persist.append(c1) # need this to avoid segfault with garbage collection
 
     has_data = data and data.InheritsFrom(r.TH1.Class())
-    do_ratio = has_data or opts["ratio_numden_indices"]
+    do_ratio = (has_data or opts["ratio_numden_indices"]) and not opts["no_ratio"]
     if do_ratio:
         pad_main = r.TPad("pad1","pad1",0.0,opts["canvas_main_y1"],1.0,1.0)
         if opts["canvas_main_topmargin"]: pad_main.SetTopMargin(opts["canvas_main_topmargin"])
