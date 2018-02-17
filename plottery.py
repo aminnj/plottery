@@ -615,7 +615,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
                 if abs(yval) > 3.: continue
                 t.DrawLatex(xval,yvaldraw,"{:.1f}".format(yval))
 
-        do_style_ratio(ratio, opts)
+        do_style_ratio(ratio, opts, pad_ratio)
         ratio.Draw("same PE"+extradrawopt)
 
 
@@ -661,7 +661,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     return c1
 
 
-def do_style_ratio(ratio, opts):
+def do_style_ratio(ratio, opts, tpad):
     if opts["ratio_range"][1] <= opts["ratio_range"][0]:
         # if high <= low, compute range automatically (+-3 sigma interval)
         mean, sigma, vals = utils.get_mean_sigma_1d_yvals(ratio)
@@ -672,6 +672,10 @@ def do_style_ratio(ratio, opts):
     ratio.SetMarkerSize(0.8)
     ratio.SetLineWidth(2)
     ratio.SetTitle("")
+    if opts["xaxis_log"]:
+        tpad.SetLogx(1)
+        ratio.GetXaxis().SetMoreLogLabels(opts["xaxis_moreloglabels"])
+        ratio.GetXaxis().SetNoExponent(opts["xaxis_noexponents"])
     ratio.GetYaxis().SetTitle(opts["ratio_name"])
     if opts["ratio_name_offset"]: ratio.GetYaxis().SetTitleOffset(opts["ratio_name_offset"])
     if opts["ratio_name_size"]: ratio.GetYaxis().SetTitleSize(opts["ratio_name_size"])
