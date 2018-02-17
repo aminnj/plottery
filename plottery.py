@@ -102,6 +102,7 @@ class Options(object):
             "zaxis_noexponents": { "type": "Boolean", "desc": "don't show exponents in logscale labels for z axis", "default": False, "kinds": ["1dratio","graph","2d"], },
 
             "yaxis_exponent_offset": { "type": "Float", "desc": "offset x10^n left or right", "default": 0.0, "kinds": ["1dratio"], },
+            "yaxis_exponent_vertical_offset": { "type": "Float", "desc": "offset x10^n up or down", "default": 0.0, "kinds": ["1dratio"], },
 
             "yaxis_ndivisions": { "type": "Int", "desc": "SetNdivisions integer for y-axis", "default": 510, "kinds": ["1dratio", "graph", "2d"], },
             "xaxis_ndivisions": { "type": "Int", "desc": "SetNdivisions integer for x-axis", "default": 510, "kinds": ["1dratio", "graph", "2d"], },
@@ -755,7 +756,7 @@ def handle_axes(c1, obj, opts):
     if opts["yaxis_tick_length_scale"]: obj.GetYaxis().SetTickLength(obj.GetYaxis().GetTickLength() * opts["yaxis_tick_length_scale"])
     if opts["yaxis_title_size"]: obj.GetYaxis().SetTitleSize(opts["yaxis_title_size"])
     if opts["yaxis_title_offset"]: obj.GetYaxis().SetTitleOffset(opts["yaxis_title_offset"])
-    if opts["yaxis_exponent_offset"]: r.TGaxis.SetExponentOffset(opts["yaxis_exponent_offset"])
+    if opts["yaxis_exponent_offset"] or opts["yaxis_exponent_vertical_offset"]: r.TGaxis.SetExponentOffset(opts["yaxis_exponent_offset"], opts["yaxis_exponent_vertical_offset"])
     if opts["yaxis_ndivisions"]: obj.GetYaxis().SetNdivisions(opts["yaxis_ndivisions"])
     if opts["xaxis_ndivisions"]: obj.GetXaxis().SetNdivisions(opts["xaxis_ndivisions"])
     if opts["max_digits"]: r.TGaxis.SetMaxDigits(opts["max_digits"])
