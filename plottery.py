@@ -61,6 +61,7 @@ class Options(object):
             "legend_alignment": { "type": "String", "desc": "easy alignment of TLegend. String containing two words from: bottom, top, left, right", "default": "", "kinds": ["1dratio","graph"], },
             "legend_smart": { "type": "Boolean", "desc": "Smart alignment of legend to prevent overlaps", "default": True, "kinds": ["1dratio"], },
             "legend_border": { "type": "Boolean", "desc": "show legend border?", "default": True, "kinds": ["1dratio","graph"], },
+            "legend_rounded": { "type": "Boolean", "desc": "rounded legend border", "default": True, "kinds": ["1dratio"], },
             "legend_scalex": { "type": "Float", "desc": "scale width of legend by this factor", "default": 1, "kinds": ["1dratio","graph"], },
             "legend_scaley": { "type": "Float", "desc": "scale height of legend by this factor", "default": 1, "kinds": ["1dratio","graph"], },
             "legend_opacity": { "type": "Float", "desc": "from 0 to 1 representing the opacity of the TLegend white background", "default": 0.5, "kinds": ["1dratio","graph"], },
@@ -344,6 +345,8 @@ def get_legend(opts):
         y2 -= toshift_y
 
     legend = r.TLegend(x1,y1,x2,y2)
+
+
     if opts["legend_opacity"] == 1:
         legend.SetFillStyle(0)
     else:
@@ -545,7 +548,18 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
 
     if opts["legend_smart"]:
         utils.smart_legend(legend, bgs, data=data, ymin=ymin, ymax=ymax, opts=opts)
-    legend.Draw()
+
+    if opts["legend_rounded"]:
+        color = r.TColor(1.0,1.0,1.0)
+        color.SetAlpha(0.5)
+        legend.SetShadowColor(color.GetNumber())
+        legend.SetLineColor(r.kGray)
+        legend.SetLineWidth(2)
+        legend.SetCornerRadius(0.1)
+        legend.Draw("arc")
+    else:
+        legend.Draw()
+
     if opts["legend_percentageinbox"]:
         draw_percentageinbox(legend, bgs, sigs, opts, has_data=has_data)
 
