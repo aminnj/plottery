@@ -555,7 +555,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
         legend.Draw()
         x1, y1, x2, y2 = legend.GetX1(), legend.GetY1(), legend.GetX2(), legend.GetY2()
         radius = 0.010
-        utils.draw_shadow_rounded_box(x1,y1,x2,y2,radius,color=r.kGray+1)
+        utils.draw_shadow_rounded_box(x1,y1,x2,y2,radius,color=r.kGray+1,alpha=0.9)
     else:
         legend.Draw()
 

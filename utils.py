@@ -733,6 +733,9 @@ def draw_rounded_box(x1,y1,x2,y2,radius=0.05,width=2,color=r.kGray,alpha=0.5,exp
     map(f, coll)
 
 def draw_shadow_rounded_box(x1,y1,x2,y2,radius=0.05,width=2,color=r.kGray,alpha=0.5,expand=0.0):
-    draw_rounded_box(x1,y1,x2,y2,radius+0.0030,color=color,width=width,alpha=0.50*alpha,expand=0.0020)
-    draw_rounded_box(x1,y1,x2,y2,radius+0.0015,color=color,width=width,alpha=0.75*alpha,expand=0.0010)
-    draw_rounded_box(x1,y1,x2,y2,radius+0.0000,color=color,width=width,alpha=0.95*alpha,expand=0.0000)
+    for amult,ex in [
+            (0.50, 0.002),
+            (0.75, 0.001),
+            (1.00, 0.000),
+            ]:
+        draw_rounded_box(x1,y1,x2,y2,radius+ex,color=color,width=width,alpha=amult*alpha,expand=ex)
