@@ -550,13 +550,12 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
         utils.smart_legend(legend, bgs, data=data, ymin=ymin, ymax=ymax, opts=opts)
 
     if opts["legend_rounded"]:
-        color = r.TColor(1.0,1.0,1.0)
-        color.SetAlpha(0.5)
-        legend.SetShadowColor(color.GetNumber())
-        legend.SetLineColor(r.kGray)
-        legend.SetLineWidth(2)
-        legend.SetCornerRadius(0.1)
-        legend.Draw("arc")
+        legend.SetFillColor(0)
+        legend.SetLineWidth(0)
+        legend.Draw()
+        x1, y1, x2, y2 = legend.GetX1(), legend.GetY1(), legend.GetX2(), legend.GetY2()
+        radius = 0.010
+        utils.draw_shadow_rounded_box(x1,y1,x2,y2,radius,color=r.kGray+1)
     else:
         legend.Draw()
 
@@ -635,8 +634,8 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
 
 
         line = r.TLine()
-        line.SetLineColor(r.kGray+2);
-        line.SetLineWidth(1);
+        line.SetLineColor(r.kGray+2)
+        line.SetLineWidth(1)
         for yval in opts["ratio_horizontal_lines"]:
             line.DrawLine(ratio.GetXaxis().GetBinLowEdge(1),yval,ratio.GetXaxis().GetBinUpEdge(ratio.GetNbinsX()),yval)
 

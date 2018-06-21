@@ -1,9 +1,33 @@
 import ROOT as r
 import os
-from math import log
+import math
 import random
 from array import array
 
+class MyArc(r.TLine):
+
+    def __init__(self, xc, yc, radius, phimin=180, phimax=360, ninterp=6):
+        self.xc = xc
+        self.yc = yc
+        self.radius = radius
+        self.phimin = phimin
+        self.phimax = phimax
+        self.ninterp = ninterp
+        super(MyArc, self).__init__()
+
+    def Draw(self, opt=""):
+        xc, yc, radius, phimin, phimax = self.xc, self.yc, self.radius, self.phimin, self.phimax
+        ninterp = self.ninterp
+        dphi = 1.0*(phimax-phimin)/ninterp
+        phis = [phimin + dphi*i for i in range(ninterp+1)]
+        coords = []
+        conv = math.pi/180.
+        for iphi,phi in enumerate(phis):
+            x = xc + radius*math.cos(phi*conv)
+            y = yc + radius*math.sin(phi*conv)
+            coords.append([x,y])
+        for (x1,y1),(x2,y2) in zip(coords[:-1],coords[1:]):
+            self.DrawLineNDC(x1,y1,x2,y2)
 
 def set_style():
 
@@ -244,7 +268,7 @@ def get_legend_marker_info(legend):
     return { "coords": coordsNDC, "label_height": label_height, "box_width": boxw, "draw_vertical": draw_vertical }
 
 def get_stack_maximum(data, stack, opts={}):
-    scalefact = 1.2
+    scalefact = 1.05
     if opts["yaxis_range"]:
         return opts["yaxis_range"][1]
     if data:
@@ -455,7 +479,7 @@ def draw_smart_2d_bin_labels(hist,opts):
             err = hist.GetBinError(ix,iy)
             if val == 0: continue
             if opts["zaxis_log"]:
-                frac = (log(min(val,zhigh))-log(zlow))/(log(zhigh)-log(zlow))
+                frac = (math.log(min(val,zhigh))-math.log(zlow))/(math.log(zhigh)-math.log(zlow))
             else:
                 frac = (min(val,zhigh)-zlow)/(zhigh-zlow)
             if frac > 1.: continue
@@ -557,7 +581,7 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
 
         if opts["yaxis_log"]:
             ymin = max(ymin,0.1)
-            yfrac = 1.*(log(min(yval,ymax))-log(ymin))/(log(ymax)-log(ymin))
+            yfrac = 1.*(math.log(min(yval,ymax))-math.log(ymin))/(math.log(ymax)-math.log(ymin))
 
         # convert from 0..1 inside plotting pane, to pad coordinates (stupid margins)
         xcoord = xfrac * (1. - r.gPad.GetLeftMargin() - r.gPad.GetRightMargin()) + r.gPad.GetLeftMargin()
@@ -680,3 +704,35 @@ def diff_images(fname1, fname2, output="diff.png"):
     # plt.set_cmap('Spectral')
     plt.set_cmap('gray')
     plt.imsave(output,-lum_img)
+
+def draw_rounded_box(x1,y1,x2,y2,radius=0.05,width=2,color=r.kGray,alpha=0.5,expand=0.0,_persist=[]):
+    x1 -= expand
+    x2 += expand
+    y1 -= expand
+    y2 += expand
+
+    lb = r.TLine(x1+radius,y1,x2-radius,y1)
+    ll = r.TLine(x1,y1+radius,x1,y2-radius)
+    lr = r.TLine(x2,y1+radius,x2,y2-radius)
+    lt = r.TLine(x1+radius,y2,x2-radius,y2)
+
+    abl = MyArc(x1+radius,y1+radius,radius,180,270)
+    abr = MyArc(x2-radius,y1+radius,radius,0,-90)
+    atl = MyArc(x1+radius,y2-radius,radius,90,180)
+    atr = MyArc(x2-radius,y2-radius,radius,0,90)
+
+    coll = [lb,ll,lr,lt,abl,abr,atl,atr]
+    _persist.extend(coll)
+
+    def f(obj):
+        obj.SetBit(r.TLine.kLineNDC)
+        obj.SetLineWidth(width)
+        obj.SetLineColorAlpha(color,alpha)
+        obj.Draw()
+
+    map(f, coll)
+
+def draw_shadow_rounded_box(x1,y1,x2,y2,radius=0.05,width=2,color=r.kGray,alpha=0.5,expand=0.0):
+    draw_rounded_box(x1,y1,x2,y2,radius+0.0030,color=color,width=width,alpha=0.50*alpha,expand=0.0020)
+    draw_rounded_box(x1,y1,x2,y2,radius+0.0015,color=color,width=width,alpha=0.75*alpha,expand=0.0010)
+    draw_rounded_box(x1,y1,x2,y2,radius+0.0000,color=color,width=width,alpha=0.95*alpha,expand=0.0000)
