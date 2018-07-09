@@ -496,11 +496,12 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
         bgs_syst.Reset()
         for hist in bgs:
             bgs_syst.Add(hist)
-        for ibin in range(1,bgs_syst.GetNbinsX()+1):
+        for ibin in range(0,bgs_syst.GetNbinsX()+2):
             # Set the bin content of the systematic band to the total of the backgrounds
             # and the error to the actual value of the systematic histogram
             bgs_syst.SetBinContent(ibin, bgs_syst.GetBinContent(ibin))
             bgs_syst.SetBinError(ibin, syst.GetBinContent(ibin))
+        if not opts["no_overflow"]: utils.move_in_overflows(bgs_syst)
         bgs_syst.SetMarkerSize(0)
         bgs_syst.SetMarkerColorAlpha(r.kWhite,0.)
         if not opts["bkg_err_fill_color"]: bgs_syst.SetFillColorAlpha(r.kGray+2,0.4)
