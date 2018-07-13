@@ -290,7 +290,7 @@ def plot_graph(valpairs,colors=[],legend_labels=[],draw_styles=[],options={}):
         else:
             raise ValueError("don't recognize this format")
 
-        if ipair < len(colors): 
+        if ipair < len(colors):
             graph.SetLineColor(colors[ipair])
             graph.SetLineWidth(4)
             graph.SetMarkerColor(colors[ipair])
@@ -442,7 +442,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
 
     stack = r.THStack("stack", "stack")
     for ibg,bg in enumerate(bgs):
-        if ibg < len(colors): 
+        if ibg < len(colors):
             bg.SetLineColor(r.TColor.GetColorDark(colors[ibg]))
             if opts["hist_line_black"]:
                 bg.SetLineColor(r.kBlack)
@@ -592,9 +592,9 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
                 numer_err = numer.GetBinError(ibin)
                 denom_val = denom.GetBinContent(ibin)
                 denom_err = denom.GetBinError(ibin)
-                if syst: 
+                if syst:
                     # when doing a pull, the denominator is usually MC
-                    # which is carries the syst error we need to add in 
+                    # which is carries the syst error we need to add in
                     denom_err = (denom_err**2. + bgs_syst.GetBinError(ibin)**2.)**0.5
                 # gaussian pull
                 pull = (ratio_val-1.)/((numer_err**2.+denom_err**2.)**0.5)
@@ -656,7 +656,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
                 for ibin in range(1,ratio.GetNbinsX()+1):
                     err2 = ratio.GetBinError(ibin)**2.
                     if err2 < 1.e-6: continue
-                    if syst: 
+                    if syst:
                         err2 += ratio_syst.GetBinError(ibin)**2.
                     val = ratio.GetBinContent(ibin)
                     chi2 += (val-1.)**2./err2
@@ -697,6 +697,8 @@ def do_style_ratio(ratio, opts, tpad):
     ratio.GetYaxis().SetNdivisions(opts["ratio_ndivisions"])
     ratio.GetYaxis().SetLabelSize(0.13)
     if opts["ratio_yaxis_label_offset"]: ratio.GetYaxis().SetLabelOffset(opts["ratio_yaxis_label_offset"])
+
+    if opts["xaxis_range"]: ratio.GetXaxis().SetRangeUser(*opts["xaxis_range"])
     ratio.GetYaxis().SetRangeUser(*opts["ratio_range"])
     ratio.GetXaxis().SetLabelSize(opts["ratio_label_size"])
     ratio.GetXaxis().SetTitle(opts["ratio_xaxis_title"])
@@ -733,12 +735,12 @@ def draw_percentageinbox(legend, bgs, sigs, opts, has_data=False):
         red = color.GetRed()
         green = color.GetGreen()
         blue = color.GetBlue()
-        # same as utils.compute_darkness (https://root.cern.ch/doc/master/TColor_8h_source.html#l00027) 
+        # same as utils.compute_darkness (https://root.cern.ch/doc/master/TColor_8h_source.html#l00027)
         # without the color.GetAlpha(), which is there because effective luminance is higher if there's transparency
-        darkness = 1.-color.GetGrayscale()/color.GetAlpha() 
+        darkness = 1.-color.GetGrayscale()/color.GetAlpha()
         if darkness < 0.5:
             t.SetTextColor(r.kBlack)
-        else: 
+        else:
             t.SetTextColor(r.kWhite)
         # t.SetTextColor(r.TColor.GetColorDark(bg.GetFillColor()))
         t.DrawLatexNDC(xndc+nudge_right,yndc,"%i#scale[0.5]{#lower[-0.2]{%%}}" % (percentage))
@@ -897,7 +899,7 @@ if __name__ == "__main__":
 
     scalefact_all = 500
     scalefact_mc = 15
-    
+
     nbins = 30
     h1 = r.TH1F("h1","h1",nbins,0,5)
     h1.FillRandom("gaus",int(scalefact_mc*6*scalefact_all))
