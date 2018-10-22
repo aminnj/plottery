@@ -140,7 +140,7 @@ def set_style():
     # Postscript options:
     tdr_style.SetPaperSize(20.,20.)
     tdr_style.cd()
-    
+
     return tdr_style
 
 def set_style_2d():
@@ -163,7 +163,7 @@ def set_palette(style, palette):
     elif palette == "radiation":
         style.SetPalette(r.kInvertedDarkBodyRadiator) # default
         style.SetNumberContours(128)
-    elif palette == "susy": 
+    elif palette == "susy":
         stops = array('d', [0.00, 0.34, 0.61, 0.84, 1.00])
         red   = array('d', [0.50, 0.50, 1.00, 1.00, 1.00])
         green = array('d', [0.50, 1.00, 1.00, 0.60, 0.50])
@@ -177,6 +177,9 @@ def get_brightdefault_colors():
 
 def get_default_colors():
     return [r.kSpring-6, r.kAzure+7, r.kRed-7, r.kOrange-2, r.kCyan-7, r.kMagenta-7, r.kTeal+6, r.kGray+2, r.kGray, r.kBlue-2, r.kRed-2]
+
+def get_default_marker_shapes():
+    return [20,21,22,23,29,34]
 
 def get_brightdefault_colors():
     return [r.kBlack, r.kAzure, r.kRed, r.kGreen+1, r.kOrange-2, r.kMagenta]
@@ -242,7 +245,7 @@ def get_legend_marker_info(legend):
     boxw = boxwidth*0.35
     yspace = (y2-y1)/nrows;
     draw_vertical = False
-    coordsNDC = [] 
+    coordsNDC = []
 
     for ientry in range(nrows*ncols):
         icol = ientry % ncols
@@ -447,7 +450,7 @@ def fill_fast(hist, xvals, yvals=None, weights=None):
 def draw_smart_2d_bin_labels(hist,opts):
     """
     Replicate the TEXT draw option for TH2 with TLatex drawn everywhere
-    but calculate the background color of each bin and draw text as 
+    but calculate the background color of each bin and draw text as
     white or black depending on the darkness
     """
     darknesses = [] # darkness values
@@ -531,7 +534,7 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
     def distance_from_corner(pseudo_legend):
         # return euclidean distance of corner of pseudo legend cloest to plot
         # pane corner (note, this is rough)
-        x1,x2,y1,y2 = pseudo_legend 
+        x1,x2,y1,y2 = pseudo_legend
         dist = 0.
         if 0.5*(y1+y2) > 0.5: dist += (1.0-y2)**2.
         else: dist += (y1)**2.
@@ -577,7 +580,7 @@ def smart_legend(legend, bgs, data=None, ymin=0., ymax=None, Nx=25, Ny=25, niter
             yval = data.GetBinContent(ibin)
             yval += 1.0*data.GetBinError(ibin)
         yfrac = (yval - ymin) / (ymax - ymin)
-        xfrac = (xval - xmin) / (xmax - xmin) 
+        xfrac = (xval - xmin) / (xmax - xmin)
 
         if opts["yaxis_log"]:
             ymin = max(ymin,0.1)

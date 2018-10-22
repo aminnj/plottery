@@ -170,6 +170,7 @@ class Options(object):
             "extra_text_ypos": { "type": "Float", "desc": "NDC y position (0 to 1) for extra text", "default": 0.87, "kinds": [ "1dratio","graph"], },
 
             "extra_lines": { "type": "List", "desc": "list of 4-tuples (x1,y1,x2,y2) for lines", "default": [], "kinds": [ "1dratio","graph"], },
+            "no_overflow": {"type":"Boolean","desc":"Do not plot overflow bins","default": False, "kinds" : ["1dratio"],},
 
             # Fun
             "us_flag": { "type": "Boolean", "desc": "show the US flag in the corner", "default": False, "kinds": ["1dratio","graph","2d"], },
@@ -361,7 +362,7 @@ def get_legend(opts):
     return legend
 
 
-def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],syst=None,options={},_persist=[]):
+def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],syst=None,options={},_persist=[],marker_shapes = []):
 
     opts = Options(options, kind="1dratio")
 
@@ -411,6 +412,10 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
             for ibg in range(len(bgs)-len(colors)):
                 colors.append(r.kBlack)
 
+    if opts["draw_points"] and len(marker_shapes) < len(bgs):
+        print ">>> Provided only {} marker shapes for {} point backgrounds, so using default shape collection".format(len(marker_shapes),len(bgs))
+        marker_shapes = utils.get_default_marker_shapes()
+
 
     if len(legend_labels) < len(bgs):
         print ">>> Provided only {} legend_labels for {} backgrounds, so using hist titles".format(len(legend_labels),len(bgs))
@@ -427,7 +432,8 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     # map original indices of bgs to indices of sorted bgs
     original_index_mapping = { oidx: nidx for oidx,nidx in zip(original_index_mapping,range(len(bgs))) }
     map(lambda x: x.Sumw2(), bgs)
-    map(utils.move_in_overflows, bgs)
+    if not opts["no_overflow"]:
+        map(utils.move_in_overflows, bgs)
 
     legend = get_legend(opts)
 
@@ -452,7 +458,8 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
             bg.SetFillColorAlpha(colors[ibg],1 if opts["do_stack"] else 0.4)
             if opts["draw_points"]:
                 bg.SetLineWidth(3)
-                bg.SetMarkerStyle(20)
+                #bg.SetMarkerStyle(20)
+                bg.SetMarkerStyle(marker_shapes[ibg % len(marker_shapes)])
                 bg.SetLineColor(colors[ibg])
                 bg.SetMarkerColor(colors[ibg])
                 bg.SetMarkerSize(0.8)
@@ -472,9 +479,13 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     if opts["do_stack"]: drawopt = "hist"
     if opts["show_bkg_errors"]: drawopt += "e1"
     if opts["show_bkg_smooth"]: drawopt += "C"
-    if opts["draw_points"]: drawopt += "PE"
+    if opts["draw_points"]:
+        drawopt += "PE"
+        if opts["hist_disable_xerrors"]:
+            drawopt += "X0"
 
-    if opts["hist_disable_xerrors"]: extradrawopt += "X0"
+    if opts["hist_disable_xerrors"]:
+        extradrawopt += "X0"
 
     # When using  stack.GetHistogram().GetMaximum() to get ymax, this screws
     # up CMS Lumi drawing, but we can't just assume that get_stack_maximum
