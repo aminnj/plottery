@@ -170,6 +170,7 @@ class Options(object):
             "extra_text_ypos": { "type": "Float", "desc": "NDC y position (0 to 1) for extra text", "default": 0.87, "kinds": [ "1dratio","graph"], },
 
             "extra_lines": { "type": "List", "desc": "list of 4-tuples (x1,y1,x2,y2) for lines", "default": [], "kinds": [ "1dratio","graph"], },
+	    "no_overflow": {"type":"Boolean","desc":"Do not plot overflow bins","default": False, "kinds" : ["1dratio"],},
 
             # Fun
             "us_flag": { "type": "Boolean", "desc": "show the US flag in the corner", "default": False, "kinds": ["1dratio","graph","2d"], },
@@ -427,7 +428,8 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     # map original indices of bgs to indices of sorted bgs
     original_index_mapping = { oidx: nidx for oidx,nidx in zip(original_index_mapping,range(len(bgs))) }
     map(lambda x: x.Sumw2(), bgs)
-    map(utils.move_in_overflows, bgs)
+    if not opts["no_overflow"]:
+        map(utils.move_in_overflows, bgs)
 
     legend = get_legend(opts)
 
