@@ -1,8 +1,7 @@
 # coding: utf-8
-
 import os
 import ROOT as r
-import utils
+from . import utils
 from array import array
 import math
 from itertools import cycle
@@ -195,16 +194,16 @@ class Options(object):
             kinds = obj["kinds"]
             if self.kind and self.kind not in kinds: continue
             if type(default) is str: default = '"{}"'.format(default)
-            print "* `{}` [{}]\n    {} (default: {})".format(key,typ,desc,default)
+            print("* `{}` [{}]\n    {} (default: {})".format(key,typ,desc,default))
 
     def check_options(self):
         for name,val in self.options.items():
             if name not in self.recognized_options:
-                print ">>> Option {} not in list of recognized options".format(name)
+                print(">>> Option {} not in list of recognized options".format(name))
             else:
                 obj = self.recognized_options[name]
                 if self.kind not in obj["kinds"]:
-                    print ">>> Option {} isn't declared to work with plot type of '{}'".format(name, self.kind)
+                    print(">>> Option {} isn't declared to work with plot type of '{}'".format(name, self.kind))
                 else:
                     pass
                     # print ">>> Carry on mate ... {} is fine".format(name)
@@ -216,7 +215,7 @@ class Options(object):
             if key in self.recognized_options:
                 return self.recognized_options[key]["default"]
             else:
-                print ">>> Hmm, can't find {} anywhere. Typo or intentional?".format(key)
+                print(">>> Hmm, can't find {} anywhere. Typo or intentional?".format(key))
                 return None
 
     def get(self, key, default=None):
@@ -405,20 +404,20 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
 
     # sort backgrounds, but make sure all parameters have same length
     if len(colors) < len(bgs):
-        print ">>> Provided only {} colors for {} backgrounds, so using default palette".format(len(colors),len(bgs))
+        print(">>> Provided only {} colors for {} backgrounds, so using default palette".format(len(colors),len(bgs)))
         colors = utils.get_default_colors()
         if len(colors) < len(bgs):
-            print ">>> Only {} default colors for {} backgrounds, so {} of them will be black.".format(len(colors),len(bgs),len(bgs)-len(colors))
+            print(">>> Only {} default colors for {} backgrounds, so {} of them will be black.".format(len(colors),len(bgs),len(bgs)-len(colors)))
             for ibg in range(len(bgs)-len(colors)):
                 colors.append(r.kBlack)
 
     if opts["draw_points"] and len(marker_shapes) < len(bgs):
-        print ">>> Provided only {} marker shapes for {} point backgrounds, so using default shape collection".format(len(marker_shapes),len(bgs))
+        print(">>> Provided only {} marker shapes for {} point backgrounds, so using default shape collection".format(len(marker_shapes),len(bgs)))
         marker_shapes = utils.get_default_marker_shapes()
 
 
     if len(legend_labels) < len(bgs):
-        print ">>> Provided only {} legend_labels for {} backgrounds, so using hist titles".format(len(legend_labels),len(bgs))
+        print(">>> Provided only {} legend_labels for {} backgrounds, so using hist titles".format(len(legend_labels),len(bgs)))
         for ibg in range(len(bgs)-len(legend_labels)):
             legend_labels.append(bgs[ibg].GetTitle())
     sort_methods = {
@@ -428,12 +427,12 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
             }
     which_method = opts["bkg_sort_method"]
     original_index_mapping = range(len(bgs))
-    bgs, colors, legend_labels, original_index_mapping = zip(*sorted(zip(bgs,colors,legend_labels,original_index_mapping), key=sort_methods[which_method]))
+    bgs, colors, legend_labels, original_index_mapping = list(zip(*sorted(zip(bgs,colors,legend_labels,original_index_mapping), key=sort_methods[which_method])))
     # map original indices of bgs to indices of sorted bgs
-    original_index_mapping = { oidx: nidx for oidx,nidx in zip(original_index_mapping,range(len(bgs))) }
-    map(lambda x: x.Sumw2(), bgs)
+    original_index_mapping = { oidx: nidx for oidx,nidx in zip(original_index_mapping,list(range(len(bgs)))) }
+    list(map(lambda x: x.Sumw2(), bgs))
     if not opts["no_overflow"]:
-        map(utils.move_in_overflows, bgs)
+        list(map(utils.move_in_overflows, bgs))
 
     legend = get_legend(opts)
 
@@ -558,7 +557,7 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
     handle_axes(pad_main, stack, opts)
     draw_extra_stuff(pad_main, opts)
 
-    if opts["legend_smart"]:
+    if opts["legend_smart"] and not opts["yaxis_log"]:
         utils.smart_legend(legend, bgs, data=data, ymin=ymin, ymax=ymax, opts=opts)
 
     if opts["legend_rounded"]:
@@ -866,7 +865,7 @@ def draw_extra_stuff(c1, opts):
     if opts["extra_lines"]:
         for iline,lcoords in enumerate(opts["extra_lines"]):
             if len(lcoords) != 4:
-                print ">>> Malformed line coordinates (length should be 4 but is {})".format(len(lcoords))
+                print(">>> Malformed line coordinates (length should be 4 but is {})".format(len(lcoords)))
                 continue
 
             line = r.TLine()
@@ -881,8 +880,8 @@ def save(c1, opts):
     fname = opts["output_name"]
     dirname = os.path.dirname(fname)
     if dirname and not os.path.isdir(dirname):
-        print ">>> Plot should go inside {}/, but it doesn't exist.".format(dirname)
-        print ">>> Instead of crashing, I'll do you a solid and make it".format(dirname)
+        print(">>> Plot should go inside {}/, but it doesn't exist.".format(dirname))
+        print(">>> Instead of crashing, I'll do you a solid and make it".format(dirname))
         os.system("mkdir -p {}".format(dirname))
 
     orig_fname = None
@@ -891,7 +890,7 @@ def save(c1, opts):
             orig_fname = fname.replace(".pdf","_orig.pdf")
             os.system("mv {} {}".format(fname, orig_fname))
 
-    print ">>> Saving {}".format(fname)
+    print(">>> Saving {}".format(fname))
     c1.SaveAs(fname)
 
     if opts["output_diff_previous"]:

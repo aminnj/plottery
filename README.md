@@ -17,7 +17,8 @@ A list of options is shown below, and there is a "self-documenting" class contai
 
 ## Instructions
 * You need ROOT
-* Modify and execute `examples.py` to see some examples (which get put into `examples/`)
+* Go to the parent directory
+* Modify and execute `python3 -m plottery.examples` to see some examples (which get put into `plottery/examples/`)
 
 ## Design philosophies
 * Generally, plotting scripts grow endlessly to encompass use-cases that crop up over the years.
