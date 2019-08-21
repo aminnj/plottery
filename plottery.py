@@ -111,6 +111,8 @@ class Options(object):
             "yaxis_range": { "type": "List", "desc": "2 elements to specify y axis range", "default": [], "kinds": ["1dratio","graph","2d"], },
             "zaxis_range": { "type": "List", "desc": "2 elements to specify z axis range", "default": [], "kinds": ["2d"], },
 
+            "xaxis_bin_text_labels":{"type":"List","desc":"List containing bin labels instead of text","default":[],"kinds":["1dratio","graph","2dratio"]},
+
             # Ratio
             "ratio_name": { "type": "String", "desc": "name of ratio pad", "default": "Data/MC", "kinds": ["1dratio"], },
             "ratio_name_size": { "type": "Float", "desc": "size of the name on the ratio pad (e.g. data/MC)", "default": 0.2, "kinds": ["1dratio"], },
@@ -473,17 +475,17 @@ def plot_hist(data=None,bgs=[],legend_labels=[],colors=[],sigs=[],sig_labels=[],
 
     stack.SetTitle(opts["title"])
 
-    drawopt = "nostackhist"
+    drawopt = "NOSTACK"
     extradrawopt = ""
     if opts["do_stack"]: drawopt = "hist"
-    if opts["show_bkg_errors"]: drawopt += "e1"
-    if opts["show_bkg_smooth"]: drawopt += "C"
+    if opts["show_bkg_errors"]: drawopt += " E1"
+    if opts["show_bkg_smooth"]: drawopt += " C"
     if opts["draw_points"]:
-        drawopt += "PE"
+        drawopt += " PE"
         if opts["hist_disable_xerrors"]:
-            drawopt += "X0"
+            drawopt += " X0"
 
-    if opts["hist_disable_xerrors"]:
+    if opts["hist_disable_xerrors"] and not opts["draw_points"]:
         extradrawopt += "X0"
 
     # When using  stack.GetHistogram().GetMaximum() to get ymax, this screws
@@ -769,6 +771,12 @@ def handle_axes(c1, obj, opts):
     if opts["xaxis_tick_length_scale"]: obj.GetXaxis().SetTickLength(obj.GetXaxis().GetTickLength() * opts["xaxis_tick_length_scale"])
     if opts["xaxis_title_size"]: obj.GetXaxis().SetTitleSize(opts["xaxis_title_size"])
     if opts["xaxis_title_offset"]: obj.GetXaxis().SetTitleOffset(opts["xaxis_title_offset"])
+
+    #xaxis custom bin labels
+    if opts["xaxis_bin_text_labels"]:
+        xaxis = obj.GetXaxis()
+        for i,label in enumerate(opts["xaxis_bin_text_labels"]):
+            xaxis.SetBinLabel(i+1,label)
 
     obj.GetYaxis().SetTitle(opts["yaxis_label"])
     if opts["yaxis_range"]:
