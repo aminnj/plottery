@@ -170,7 +170,8 @@ class Options(object):
             "extra_text_xpos": { "type": "Float", "desc": "NDC x position (0 to 1) for extra text", "default": 0.3, "kinds": [ "1dratio","graph"], },
             "extra_text_ypos": { "type": "Float", "desc": "NDC y position (0 to 1) for extra text", "default": 0.87, "kinds": [ "1dratio","graph"], },
 
-            "extra_lines": { "type": "List", "desc": "list of 4-tuples (x1,y1,x2,y2) for lines", "default": [], "kinds": [ "1dratio","graph"], },
+            "extra_lines": { "type": "List", "desc": "list of upto 7-tuples (x1,y1,x2,y2,style,width,color) for lines", "default": [], "kinds": [ "1dratio","graph"], },
+
             "no_overflow": {"type":"Boolean","desc":"Do not plot overflow bins","default": False, "kinds" : ["1dratio"],},
 
             # Fun
@@ -872,16 +873,32 @@ def draw_extra_stuff(c1, opts):
 
     if opts["extra_lines"]:
         for iline,lcoords in enumerate(opts["extra_lines"]):
-            if len(lcoords) != 4:
-                print(">>> Malformed line coordinates (length should be 4 but is {})".format(len(lcoords)))
+            lineWidth = 1
+            lineStyle = 1
+            lineColor = r.kGray+2
+            if len(lcoords) < 4:
+                print(">>> Malformed line coordinates (length should be >=4 but is {})".format(len(lcoords)))
                 continue
+            elif len(lcoords) < 5:
+                print(">>> Line style not specified. Default style is solid line")
+            elif len(lcoords) < 6:
+                print(">>> Line width not specified. Default size is 1")
+            elif len(lcoords) < 7:
+                print(">>> Line color not specified. Default color is r.kGray+2")
+
+            x1,x2,y1,y2 = lcoords[:4]
+            if len(lcoords) >= 5:
+                lineStyle = lcoords[4]
+            if len(lcoords) >= 6:
+                lineWidth = lcoords[5]
+            if len(lcoords) >= 7:
+                lineColor = lcoords[6]
 
             line = r.TLine()
-            line.SetLineColor(r.kGray+2)
-            line.SetLineWidth(1)
-            line.SetLineStyle(2)
-            line.DrawLine(*lcoords)
-
+            line.SetLineColor(lineColor)
+            line.SetLineWidth(lineWidth)
+            line.SetLineStyle(lineStyle)
+            line.DrawLine(x1,y1,x2,y2)
 
 def save(c1, opts):
 
